@@ -6,6 +6,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-06-23
+
+### Fixed
+
+- Published the wasm package under the scoped npm name `@ryansann/okftool`
+  because npm blocks the unscoped `okftool` name as too similar to `okf-tool`.
+
 ## [0.1.4] - 2026-06-23
 
 ### Fixed
@@ -45,7 +52,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Self-documenting OKF bundle at `docs/okf/`, linted under the strict profile in
   CI (dogfood).
 
-[Unreleased]: https://github.com/ryansann/okftool/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/ryansann/okftool/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/ryansann/okftool/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/ryansann/okftool/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/ryansann/okftool/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/ryansann/okftool/releases/tag/v0.1.2

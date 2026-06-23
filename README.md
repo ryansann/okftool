@@ -11,7 +11,7 @@ One core, three surfaces:
 | Surface | Crate | Use |
 |---|---|---|
 | **Native CLI** | `okftool-cli` → `okftool` | CI, local `okftool validate` / `okftool lint` |
-| **wasm / npm** | `okftool-wasm` → `okftool` npm package | embed in JS hosts (a desktop app, a Node/edge API, the browser) |
+| **wasm / npm** | `okftool-wasm` → `@ryansann/okftool` npm package | embed in JS hosts (a desktop app, a Node/edge API, the browser) |
 | **Rust crate** | `okftool-core` | embed directly in a Rust host |
 
 The brain — parsing, spec validation, and the lint engine — lives in `okftool-core`

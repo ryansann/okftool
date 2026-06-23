@@ -5,12 +5,18 @@ on:
     branches: [main]
   pull_request:
 
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
 
 jobs:
-  native:
-    name: native (test + lint)
+  test:
+    name: fmt · clippy · test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,10 +26,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
-      - run: cargo test -p okflint-core -p okflint-cli
+      - run: cargo test --workspace --exclude okflint-wasm
 
   wasm:
-    name: wasm build
+    name: wasm build + pack
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,3 +38,6 @@ jobs:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
       - run: cargo build -p okflint-wasm --target wasm32-unknown-unknown --release
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - name: Pack the npm package (smoke)
+        run: wasm-pack build crates/okflint-wasm --target bundler --out-name okflint --out-dir pkg

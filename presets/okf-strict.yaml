@@ -1,0 +1,10 @@
+# okf-strict — opinionated, CI-blocking profile. Promotes advisory rules to
+# errors and enables the off-by-default hygiene checks.
+rules:
+  require-description: error
+  require-timestamp: warn
+  consistent-type-casing: error
+  prefer-absolute-links: error
+  no-orphan-concepts: error
+  structural-body: error
+  no-dangling-links: warn

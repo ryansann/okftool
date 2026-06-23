@@ -16,6 +16,8 @@ serde_json = "1"
 # serde_yaml is archived but stable and ubiquitous; revisit if a maintained fork
 # (serde_norway) becomes necessary.
 serde_yaml = "0.9"
+regex = "1"
+globset = "0.4"
 
 # Smaller, faster release binaries for the CLI.
 [profile.release]

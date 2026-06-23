@@ -1,0 +1,4 @@
+# okf-recommended — the default profile.
+# Every rule runs at its built-in recommended severity (see each rule's `meta`),
+# so this preset intentionally overrides nothing.
+rules: {}

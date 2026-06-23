@@ -26,20 +26,46 @@ okflint mirrors the OKF spec's MUST/SHOULD split:
   never flag something the spec mandates tolerating (broken links, unknown
   `type` values, missing optional fields) as a non-disableable error.
 
+## CLI
+
+```sh
+okflint validate <bundle>          # §9 conformance only (exit 1 if non-conformant)
+okflint lint <bundle>              # spec + lint rules; --config, --format pretty|json|sarif
+okflint rules                      # list all rules by category
+okflint explain <rule>             # a rule's rationale, category, default severity
+okflint init [dir]                 # scaffold a .okflint.yaml
+```
+
+`lint` reads `<bundle>/.okflint.yaml` (or `--config`), else the `okf-recommended`
+profile. Exit is non-zero on non-conformance or any diagnostic at/above
+`ci.fail-on` (default `error`).
+
+### Configuration
+
+`.okflint.yaml` selects a profile with `extends`, sets per-rule severity/options,
+scopes rules with glob `overrides`, and gates CI with `ci.fail-on`. Concepts can
+opt out inline via an `okf-lint-disable` frontmatter list.
+
+The full format, every rule, and the **okf-recommended / okf-strict / okf-minimal**
+profiles are documented in okflint's own OKF bundle — see
+[docs/okf](docs/okf) ([reference/configuration](docs/okf/reference/configuration.md),
+[reference/profiles](docs/okf/reference/profiles.md)).
+
 ## Develop
 
 ```sh
-cargo test -p okflint-core -p okflint-cli          # unit + integration tests
-cargo run -p okflint-cli -- validate fixtures/minimal
-cargo build -p okflint-wasm --target wasm32-unknown-unknown   # wasm builds
+make ci                                           # fmt + clippy + test + wasm
+cargo run -p okflint-cli -- lint fixtures/cases/all-rules
 wasm-pack build crates/okflint-wasm --target bundler --out-name okflint   # npm pkg
 ```
 
 ## Status
 
-Phase 0 — workspace skeleton: parse + §9 `validate` on both the native and wasm
-builds. Lint engine, config (`.okflint.yaml`), presets, autofix, and releases
-are landing in subsequent phases.
+Phases 0–3 complete: parser, §9 `validate`, the lint engine (9 rules across 5
+categories), `.okflint.yaml` config with presets/overrides/inline-disable, and
+the full CLI — all running identically on the native and wasm builds. Next:
+autofix (`--fix`) + `okf index`, the rest of the rule catalog, the release
+pipeline, and wiring okfview's Diagnostics panel to the wasm package.
 
 ## License
 

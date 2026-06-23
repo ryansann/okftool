@@ -6,3 +6,7 @@ node_modules/
 /pkg/
 *.wasm
 .DS_Store
+# The big real-world parity corpus (ga4/stackoverflow/crypto_bitcoin, vendored
+# from okfview) stays local-only; its tests skip when absent. The small targeted
+# case bundles under fixtures/cases/ ARE committed.
+/fixtures/.vendor/

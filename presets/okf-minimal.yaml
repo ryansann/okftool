@@ -1,0 +1,13 @@
+# okf-minimal — quietest profile. Silences hygiene/topology advice; keeps only
+# the cheap, high-signal format check. (Spec conformance is always enforced by
+# `validate`, independent of any profile.)
+rules:
+  require-description: "off"
+  require-timestamp: "off"
+  consistent-type-casing: "off"
+  prefer-absolute-links: "off"
+  no-orphan-concepts: "off"
+  max-out-degree: "off"
+  structural-body: "off"
+  no-dangling-links: "off"
+  timestamp-iso8601: warn

@@ -105,7 +105,7 @@ jobs:
       - name: Publish
         run: |
           cd crates/okftool-wasm/pkg
-          npm pkg set name="okftool"
+          npm pkg set name="okftool" repository.url="git+https://github.com/ryansann/okftool.git"
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

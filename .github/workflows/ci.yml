@@ -46,4 +46,5 @@ jobs:
           wasm-pack build crates/okftool-wasm --target bundler --out-name okftool --out-dir pkg
           cp README.md LICENSE crates/okftool-wasm/pkg/
           cd crates/okftool-wasm/pkg
+          npm pkg set name="okftool" repository.url="git+https://github.com/ryansann/okftool.git"
           npm pack --dry-run

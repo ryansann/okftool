@@ -19,3 +19,5 @@ path = "src/main.rs"
 okftool-core = { path = "../okftool-core", version = "0.1.0" }
 serde_json = { workspace = true }
 clap = { version = "4", features = ["derive"] }
+tar = "0.4"
+flate2 = "1"

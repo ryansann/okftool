@@ -49,6 +49,7 @@ okftool lint <bundle>          # spec + lint rules; --config, --format pretty|js
 okftool rules                  # list all rules by category
 okftool explain <rule>         # a rule's rationale, category, default severity
 okftool init [dir]             # scaffold a .okftool.yaml
+okftool build <bundle>         # package the bundle as <name>.tar.gz (-o, --prefix)
 ```
 
 `lint` reads `<bundle>/.okftool.yaml` (or `--config`), else the `okf-recommended`

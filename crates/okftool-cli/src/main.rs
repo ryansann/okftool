@@ -8,7 +8,11 @@ use clap::{Parser, Subcommand, ValueEnum};
 use okftool_core::{build_bundle, check, rule_metas, Bundle, Diagnostic, ResolvedConfig, Severity};
 
 #[derive(Parser)]
-#[command(name = "okftool", version, about = "Validate and lint OKF bundles")]
+#[command(
+    name = "okftool",
+    version,
+    about = "Validate, lint, and package OKF bundles"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -46,6 +50,20 @@ enum Command {
         #[arg(default_value = ".")]
         path: PathBuf,
     },
+    /// Package a bundle directory into a `.tar.gz` for distribution.
+    Build {
+        /// Path to the bundle directory.
+        path: PathBuf,
+        /// Output archive path (default: `<bundle>.tar.gz`).
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+        /// Top-level directory inside the archive (default: the output file stem).
+        #[arg(long)]
+        prefix: Option<String>,
+        /// Package even if the bundle is not spec-conformant.
+        #[arg(long)]
+        no_validate: bool,
+    },
 }
 
 #[derive(Copy, Clone, ValueEnum)]
@@ -66,6 +84,12 @@ fn main() -> ExitCode {
         Command::Explain { rule } => explain(&rule),
         Command::Rules => list_rules(),
         Command::Init { path } => init(&path),
+        Command::Build {
+            path,
+            output,
+            prefix,
+            no_validate,
+        } => build(&path, output, prefix, no_validate),
     }
 }
 
@@ -277,6 +301,151 @@ fn init(dir: &Path) -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+/// Package a bundle directory into a gzipped tarball.
+fn build(
+    root: &Path,
+    output: Option<PathBuf>,
+    prefix: Option<String>,
+    no_validate: bool,
+) -> ExitCode {
+    if !root.is_dir() {
+        eprintln!("error: {} is not a directory", root.display());
+        return ExitCode::FAILURE;
+    }
+
+    // Conformance gate (only the `.md` files matter for §9).
+    if !no_validate {
+        let md = match read_bundle(root) {
+            Ok(md) => md,
+            Err(err) => {
+                eprintln!("error: {err}");
+                return ExitCode::FAILURE;
+            }
+        };
+        let bundle = build_bundle(md);
+        if !bundle.conformant {
+            eprintln!("error: bundle is not OKF-conformant; refusing to package (pass --no-validate to override)");
+            for d in bundle.diagnostics.iter().filter(|d| d.spec) {
+                eprintln!("  {}: {} — {}", d.file, d.code, d.message);
+            }
+            return ExitCode::FAILURE;
+        }
+    }
+
+    let output = output.unwrap_or_else(|| {
+        let stem = root
+            .file_name()
+            .and_then(|s| s.to_str())
+            .unwrap_or("bundle");
+        PathBuf::from(format!("{stem}.tar.gz"))
+    });
+    let prefix = prefix.unwrap_or_else(|| archive_stem(&output));
+
+    // Resolve the output absolutely so we never package the archive into itself.
+    let out_abs = output
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .map_or_else(
+            || std::env::current_dir().ok(),
+            |p| std::fs::canonicalize(p).ok(),
+        )
+        .map(|dir| dir.join(output.file_name().unwrap_or_default()));
+
+    let files = match collect_all_files(root) {
+        Ok(files) => files,
+        Err(err) => {
+            eprintln!("error: {err}");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    match write_targz(&output, &prefix, &files, out_abs.as_deref()) {
+        Ok(count) => {
+            println!("wrote {} ({count} files)", output.display());
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("error: {err}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+/// Strip a `.tar.gz`/`.tgz` suffix to get the archive's top-level dir name.
+fn archive_stem(path: &Path) -> String {
+    let name = path
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("bundle");
+    name.strip_suffix(".tar.gz")
+        .or_else(|| name.strip_suffix(".tgz"))
+        .unwrap_or(name)
+        .to_string()
+}
+
+/// Every file under `root` (not just `.md`), skipping `.git`, sorted for
+/// reproducibility.
+fn collect_all_files(root: &Path) -> std::io::Result<Vec<(String, PathBuf)>> {
+    fn walk(root: &Path, dir: &Path, out: &mut Vec<(String, PathBuf)>) -> std::io::Result<()> {
+        for entry in std::fs::read_dir(dir)? {
+            let path = entry?.path();
+            if path.is_dir() {
+                if path.file_name().and_then(|s| s.to_str()) == Some(".git") {
+                    continue;
+                }
+                walk(root, &path, out)?;
+            } else {
+                let rel = path
+                    .strip_prefix(root)
+                    .unwrap_or(&path)
+                    .to_string_lossy()
+                    .replace('\\', "/");
+                out.push((rel, path));
+            }
+        }
+        Ok(())
+    }
+    let mut out = Vec::new();
+    walk(root, root, &mut out)?;
+    out.sort_by(|a, b| a.0.cmp(&b.0));
+    Ok(out)
+}
+
+fn write_targz(
+    output: &Path,
+    prefix: &str,
+    files: &[(String, PathBuf)],
+    skip: Option<&Path>,
+) -> std::io::Result<usize> {
+    let gz = flate2::write::GzEncoder::new(
+        std::fs::File::create(output)?,
+        flate2::Compression::default(),
+    );
+    let mut builder = tar::Builder::new(gz);
+    let mut count = 0;
+    for (rel, abs) in files {
+        if let (Some(skip), Ok(canon)) = (skip, std::fs::canonicalize(abs)) {
+            if canon == skip {
+                continue; // don't archive the output into itself
+            }
+        }
+        let data = std::fs::read(abs)?;
+        let mut header = tar::Header::new_gnu();
+        header.set_size(data.len() as u64);
+        header.set_mode(0o644);
+        header.set_mtime(0); // fixed mtime → reproducible archives
+        let name = if prefix.is_empty() {
+            rel.clone()
+        } else {
+            format!("{prefix}/{rel}")
+        };
+        builder.append_data(&mut header, name, &data[..])?;
+        count += 1;
+    }
+    builder.into_inner()?.finish()?;
+    Ok(count)
 }
 
 fn load_config(root: &Path, explicit: Option<&Path>) -> Result<ResolvedConfig, String> {

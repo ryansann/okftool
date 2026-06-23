@@ -3,6 +3,7 @@
 node_modules/
 # wasm-pack output (generated npm package)
 /crates/okftool-wasm/pkg/
+/crates/okftool-wasm/pkg-node/
 /pkg/
 *.wasm
 .DS_Store

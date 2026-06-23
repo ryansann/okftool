@@ -43,8 +43,6 @@ jobs:
       - uses: jetli/wasm-pack-action@v0.4.0
       - name: Pack the npm package (smoke)
         run: |
-          wasm-pack build crates/okftool-wasm --target bundler --out-name okftool --out-dir pkg
-          cp README.md LICENSE crates/okftool-wasm/pkg/
+          scripts/build-npm-package.sh
           cd crates/okftool-wasm/pkg
-          npm pkg set name="@ryansann/okftool" repository.url="git+https://github.com/ryansann/okftool.git"
           npm pack --dry-run

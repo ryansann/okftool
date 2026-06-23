@@ -95,9 +95,7 @@ jobs:
           targets: wasm32-unknown-unknown
       - uses: jetli/wasm-pack-action@v0.4.0
       - name: Build npm package
-        run: |
-          wasm-pack build crates/okftool-wasm --target bundler --out-name okftool --out-dir pkg
-          cp README.md LICENSE crates/okftool-wasm/pkg/
+        run: scripts/build-npm-package.sh
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -105,7 +103,6 @@ jobs:
       - name: Publish
         run: |
           cd crates/okftool-wasm/pkg
-          npm pkg set name="@ryansann/okftool" repository.url="git+https://github.com/ryansann/okftool.git"
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,6 +1,6 @@
 # Architecture
 
 - [Overview](/architecture/overview.md) — one core, three surfaces
-- [okflint-core](/architecture/core.md)
-- [okflint-cli](/architecture/cli.md)
-- [okflint-wasm](/architecture/wasm.md)
+- [okftool-core](/architecture/core.md) — the parser, validator, and lint engine
+- [okftool-cli](/architecture/cli.md) — the native binary for CI
+- [okftool-wasm](/architecture/wasm.md) — the npm package for JS hosts

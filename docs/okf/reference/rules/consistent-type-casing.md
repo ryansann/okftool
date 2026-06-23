@@ -14,4 +14,4 @@ Table versus table fragment the type vocabulary and split filters and the graph.
 - **Default severity:** warn
 - **Fixable:** yes
 
-Configured in [.okflint.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.

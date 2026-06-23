@@ -14,4 +14,4 @@ Non-ISO timestamps sort lexically wrong and are ambiguous across locales.
 - **Default severity:** error
 - **Fixable:** yes
 
-Configured in [.okflint.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.

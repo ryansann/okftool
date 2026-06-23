@@ -1,0 +1,4 @@
+# okftool's own OKF bundle is held to the strictest profile — it should be
+# exemplary. `okftool lint docs/okf` picks this up automatically, and the dogfood
+# test (crates/okftool-cli/tests/cli.rs) enforces it in CI.
+extends: okf-strict

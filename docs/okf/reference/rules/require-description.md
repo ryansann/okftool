@@ -14,4 +14,4 @@ The description is the unit of progressive disclosure — it is what index snipp
 - **Default severity:** warn
 - **Fixable:** no
 
-Configured in [.okflint.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.

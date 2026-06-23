@@ -1,0 +1,17 @@
+[package]
+name = "okftool-cli"
+description = "okftool — validate and lint OKF bundles from the command line."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "okftool"
+path = "src/main.rs"
+
+[dependencies]
+okftool-core = { path = "../okftool-core" }
+serde_json = { workspace = true }
+clap = { version = "4", features = ["derive"] }

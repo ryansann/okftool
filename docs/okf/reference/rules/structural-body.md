@@ -14,4 +14,4 @@ Headings, lists, and tables retrieve far better than a wall of prose and give ag
 - **Default severity:** warn
 - **Fixable:** no
 
-Configured in [.okflint.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.

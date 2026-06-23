@@ -7,9 +7,9 @@ timestamp: 2026-06-23
 
 # Lint profiles
 
-A profile is a named preset selected with `extends`. okflint ships three; a
+A profile is a named preset selected with `extends`. okftool ships three; a
 bundle inherits one and overrides what it needs. These blocks are the actual
-presets compiled into okflint (kept in sync with `presets/` by a test).
+presets compiled into okftool (kept in sync with `presets/` by a test).
 
 ## okf-recommended
 
@@ -33,11 +33,19 @@ off-by-default hygiene checks turn on.
 rules:
   require-description: error
   require-timestamp: warn
+  no-empty-frontmatter-values: error
   consistent-type-casing: error
+  no-singleton-type: warn
   prefer-absolute-links: error
-  no-orphan-concepts: error
-  structural-body: error
+  no-relative-links: error
   no-dangling-links: warn
+  no-self-link: error
+  no-orphan-concepts: error
+  no-unindexed-concepts: error
+  structural-body: error
+  body-not-empty: error
+  index-entry-has-description: warn
+  log-newest-first: warn
 ```
 
 ## okf-minimal
@@ -53,12 +61,18 @@ cheap format check. Spec conformance is always enforced by
 rules:
   require-description: "off"
   require-timestamp: "off"
+  no-empty-frontmatter-values: "off"
   consistent-type-casing: "off"
+  no-singleton-type: "off"
   prefer-absolute-links: "off"
   no-orphan-concepts: "off"
+  no-unindexed-concepts: "off"
   max-out-degree: "off"
   structural-body: "off"
-  no-dangling-links: "off"
+  body-not-empty: "off"
+  no-self-link: "off"
+  index-entry-has-description: "off"
+  log-newest-first: "off"
   timestamp-iso8601: warn
 ```
 

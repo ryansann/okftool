@@ -14,4 +14,4 @@ A degree-zero concept is unreachable by graph traversal and contributes nothing 
 - **Default severity:** warn
 - **Fixable:** no
 
-Configured in [.okflint.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.

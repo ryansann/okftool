@@ -3,12 +3,15 @@ resolver = "2"
 members = ["crates/okftool-core", "crates/okftool-cli", "crates/okftool-wasm"]
 
 [workspace.package]
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/ryansann/okftool"
+homepage = "https://github.com/ryansann/okftool"
 authors = ["ryansann"]
 rust-version = "1.82"
+keywords = ["okf", "knowledge", "linter", "validator", "markdown"]
+categories = ["command-line-utilities", "development-tools"]
 
 [workspace.dependencies]
 serde = { version = "1", features = ["derive"] }

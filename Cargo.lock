@@ -241,7 +241,7 @@ checksum = "88904434abc2901f197fe8cc55f0445e7ded921dba5911dad2e2b39b48e663c4"
 
 [[package]]
 name = "okftool-cli"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "clap",
  "okftool-core",
@@ -250,7 +250,7 @@ dependencies = [
 
 [[package]]
 name = "okftool-core"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "globset",
  "regex",
@@ -261,7 +261,7 @@ dependencies = [
 
 [[package]]
 name = "okftool-wasm"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "okftool-core",

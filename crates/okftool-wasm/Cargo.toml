@@ -5,13 +5,16 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+homepage.workspace = true
 rust-version.workspace = true
+# Published to npm (via wasm-pack), not crates.io.
+publish = false
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-okftool-core = { path = "../okftool-core" }
+okftool-core = { path = "../okftool-core", version = "0.1.0" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 wasm-bindgen = "0.2"

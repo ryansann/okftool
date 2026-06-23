@@ -1,0 +1,26 @@
+[workspace]
+resolver = "2"
+members = ["crates/okflint-core", "crates/okflint-cli", "crates/okflint-wasm"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/ryansann/okflint"
+authors = ["ryansann"]
+rust-version = "1.82"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# serde_yaml is archived but stable and ubiquitous; revisit if a maintained fork
+# (serde_norway) becomes necessary.
+serde_yaml = "0.9"
+
+# Smaller, faster release binaries for the CLI.
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

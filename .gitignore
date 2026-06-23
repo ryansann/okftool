@@ -10,3 +10,4 @@ node_modules/
 # from okfview) stays local-only; its tests skip when absent. The small targeted
 # case bundles under fixtures/cases/ ARE committed.
 /fixtures/.vendor/
+.envrc

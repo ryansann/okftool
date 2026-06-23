@@ -23,28 +23,32 @@ lint: ## Clippy, warnings denied (CI)
 
 .PHONY: test
 test: ## Run the test suite (native crates)
-	$(CARGO) test --workspace --exclude okflint-wasm
+	$(CARGO) test --workspace --exclude okftool-wasm
 
 .PHONY: wasm
 wasm: ## Compile the wasm crate (CI)
-	$(CARGO) build -p okflint-wasm --target $(WASM_TARGET) --release
+	$(CARGO) build -p okftool-wasm --target $(WASM_TARGET) --release
 
 .PHONY: pkg
-pkg: ## Build the npm package (bundler target → crates/okflint-wasm/pkg)
-	$(WASM_PACK) build crates/okflint-wasm --target bundler --out-name okflint --out-dir pkg
+pkg: ## Build the npm package (bundler target → crates/okftool-wasm/pkg)
+	$(WASM_PACK) build crates/okftool-wasm --target bundler --out-name okftool --out-dir pkg
 
 .PHONY: build
 build: ## Release build of the CLI
-	$(CARGO) build -p okflint-cli --release
+	$(CARGO) build -p okftool-cli --release
+
+.PHONY: lint-self
+lint-self: ## Lint okftool's own OKF docs bundle (uses docs/okf/.okftool.yaml → strict)
+	$(CARGO) run -q -p okftool-cli -- lint docs/okf
 
 .PHONY: install
-install: ## Install the okflint CLI from source
-	$(CARGO) install --path crates/okflint-cli
+install: ## Install the okftool CLI from source
+	$(CARGO) install --path crates/okftool-cli
 
 .PHONY: ci
-ci: fmt-check lint test wasm ## Everything CI runs
+ci: fmt-check lint test wasm lint-self ## Everything CI runs
 
 .PHONY: clean
 clean: ## Remove build artifacts
 	$(CARGO) clean
-	rm -rf crates/okflint-wasm/pkg pkg
+	rm -rf crates/okftool-wasm/pkg pkg

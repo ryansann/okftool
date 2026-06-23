@@ -1,11 +1,11 @@
 ---
 type: Concept
-title: okflint-wasm
+title: okftool-wasm
 description: The WebAssembly surface published as an npm package.
 timestamp: 2026-06-23
 ---
 
-# okflint-wasm
+# okftool-wasm
 
 The wasm binding embedded by JS hosts (the desktop app, an API, the browser).
 

@@ -14,4 +14,4 @@ A timestamp enables sort-by-recency and audit of when knowledge last changed.
 - **Default severity:** warn
 - **Fixable:** no
 
-Configured in [.okflint.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.

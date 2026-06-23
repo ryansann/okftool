@@ -3,8 +3,16 @@
 rules:
   require-description: error
   require-timestamp: warn
+  no-empty-frontmatter-values: error
   consistent-type-casing: error
+  no-singleton-type: warn
   prefer-absolute-links: error
-  no-orphan-concepts: error
-  structural-body: error
+  no-relative-links: error
   no-dangling-links: warn
+  no-self-link: error
+  no-orphan-concepts: error
+  no-unindexed-concepts: error
+  structural-body: error
+  body-not-empty: error
+  index-entry-has-description: warn
+  log-newest-first: warn

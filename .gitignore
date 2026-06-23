@@ -2,7 +2,7 @@
 **/target
 node_modules/
 # wasm-pack output (generated npm package)
-/crates/okflint-wasm/pkg/
+/crates/okftool-wasm/pkg/
 /pkg/
 *.wasm
 .DS_Store

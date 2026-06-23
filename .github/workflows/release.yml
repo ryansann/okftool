@@ -23,7 +23,7 @@ jobs:
       - name: Check version
         run: |
           crate="$(cargo metadata --no-deps --format-version 1 \
-            | jq -r '.packages[] | select(.name=="okflint-cli") | .version')"
+            | jq -r '.packages[] | select(.name=="okftool-cli") | .version')"
           tag="${GITHUB_REF_NAME#v}"
           echo "crate=$crate tag=$tag"
           if [ "$crate" != "$tag" ]; then
@@ -57,9 +57,9 @@ jobs:
       - name: Build, archive, checksum, and upload to the release
         uses: taiki-e/upload-rust-binary-action@v1
         with:
-          bin: okflint
+          bin: okftool
           target: ${{ matrix.target }}
-          archive: okflint-$tag-$target
+          archive: okftool-$tag-$target
           checksum: sha256
           tar: unix
           zip: windows
@@ -77,7 +77,7 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
       - uses: jetli/wasm-pack-action@v0.4.0
-      - run: wasm-pack build crates/okflint-wasm --target bundler --out-name okflint --out-dir pkg
+      - run: wasm-pack build crates/okftool-wasm --target bundler --out-name okftool --out-dir pkg
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -85,7 +85,7 @@ jobs:
       - name: Publish
         run: |
           cd pkg
-          npm pkg set name="okflint"
+          npm pkg set name="okftool"
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

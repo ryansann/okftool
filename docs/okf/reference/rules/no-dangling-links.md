@@ -14,4 +14,4 @@ Broken links are explicitly tolerated by the spec (forward stubs are legitimate)
 - **Default severity:** off
 - **Fixable:** no
 
-Configured in [.okflint.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.

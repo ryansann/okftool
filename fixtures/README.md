@@ -6,7 +6,7 @@ Small OKF bundles used by the test suite.
 
 One tiny bundle per diagnostic, each crafted to trigger **exactly** one rule (or
 validation) and nothing else — they double as worked examples. Asserted by
-`crates/okflint-core/tests/cases.rs`.
+`crates/okftool-core/tests/cases.rs`.
 
 | Case | Triggers | Notes |
 |---|---|---|
@@ -26,6 +26,6 @@ validation) and nothing else — they double as worked examples. Asserted by
 ## `.vendor/` (gitignored)
 
 The large real-world parity corpus (`ga4`, `stackoverflow`, `crypto_bitcoin`,
-vendored from okfview). Used by `tests/fixtures.rs` to prove okflint's verdict
+vendored from okfview). Used by `tests/fixtures.rs` to prove okftool's verdict
 matches the app on real bundles; those tests **skip** when this directory is
 absent, so they don't run in CI.

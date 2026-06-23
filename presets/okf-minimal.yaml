@@ -4,10 +4,16 @@
 rules:
   require-description: "off"
   require-timestamp: "off"
+  no-empty-frontmatter-values: "off"
   consistent-type-casing: "off"
+  no-singleton-type: "off"
   prefer-absolute-links: "off"
   no-orphan-concepts: "off"
+  no-unindexed-concepts: "off"
   max-out-degree: "off"
   structural-body: "off"
-  no-dangling-links: "off"
+  body-not-empty: "off"
+  no-self-link: "off"
+  index-entry-has-description: "off"
+  log-newest-first: "off"
   timestamp-iso8601: warn

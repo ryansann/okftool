@@ -1,10 +1,10 @@
 ---
 okf_version: "0.1"
 ---
-# okflint
+# okftool
 
-The okflint toolchain documented as an OKF bundle — okflint dogfooding OKF. This
+The okftool toolchain documented as an OKF bundle — okftool dogfooding OKF. This
 bundle is itself validated and linted in CI.
 
-- [Architecture](/architecture/index.md)
-- [Reference](/reference/index.md)
+- [Architecture](/architecture/index.md) — one core, three surfaces
+- [Reference](/reference/index.md) — validation, configuration, and the rule catalog

@@ -32,6 +32,7 @@ wasm: ## Compile the wasm crate (CI)
 .PHONY: pkg
 pkg: ## Build the npm package (bundler target → crates/okftool-wasm/pkg)
 	$(WASM_PACK) build crates/okftool-wasm --target bundler --out-name okftool --out-dir pkg
+	cp README.md LICENSE crates/okftool-wasm/pkg/
 
 .PHONY: build
 build: ## Release build of the CLI

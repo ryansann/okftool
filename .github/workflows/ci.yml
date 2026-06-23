@@ -42,4 +42,8 @@ jobs:
       - run: cargo build -p okftool-wasm --target wasm32-unknown-unknown --release
       - uses: jetli/wasm-pack-action@v0.4.0
       - name: Pack the npm package (smoke)
-        run: wasm-pack build crates/okftool-wasm --target bundler --out-name okftool --out-dir pkg
+        run: |
+          wasm-pack build crates/okftool-wasm --target bundler --out-name okftool --out-dir pkg
+          cp README.md LICENSE crates/okftool-wasm/pkg/
+          cd crates/okftool-wasm/pkg
+          npm pack --dry-run

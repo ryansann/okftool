@@ -108,9 +108,9 @@ pub struct ResolvedConfig {
 
 fn preset_yaml(name: &str) -> Option<&'static str> {
     match name {
-        "okf-recommended" => Some(include_str!("../../../presets/okf-recommended.yaml")),
-        "okf-strict" => Some(include_str!("../../../presets/okf-strict.yaml")),
-        "okf-minimal" => Some(include_str!("../../../presets/okf-minimal.yaml")),
+        "okf-recommended" => Some(include_str!("../presets/okf-recommended.yaml")),
+        "okf-strict" => Some(include_str!("../presets/okf-strict.yaml")),
+        "okf-minimal" => Some(include_str!("../presets/okf-minimal.yaml")),
         _ => None,
     }
 }

@@ -5,13 +5,17 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
 rust-version.workspace = true
+readme = "../../README.md"
 
 [[bin]]
 name = "okftool"
 path = "src/main.rs"
 
 [dependencies]
-okftool-core = { path = "../okftool-core" }
+okftool-core = { path = "../okftool-core", version = "0.1.0" }
 serde_json = { workspace = true }
 clap = { version = "4", features = ["derive"] }

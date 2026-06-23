@@ -24,6 +24,59 @@ fn corpus() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/cases/all-rules")
 }
 
+fn case(name: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../fixtures/cases")
+        .join(name)
+}
+
+fn tmp(name: &str) -> PathBuf {
+    std::env::temp_dir().join(format!("okftool-{}-{}", std::process::id(), name))
+}
+
+#[test]
+fn build_packages_a_conformant_bundle() {
+    let out = tmp("build.tar.gz");
+    let _ = std::fs::remove_file(&out);
+    let res = bin()
+        .arg("build")
+        .arg(corpus())
+        .arg("-o")
+        .arg(&out)
+        .output()
+        .unwrap();
+    assert!(
+        res.status.success(),
+        "build failed: {}",
+        String::from_utf8_lossy(&res.stderr)
+    );
+    let bytes = std::fs::read(&out).unwrap();
+    assert!(
+        bytes.len() > 2 && bytes[0] == 0x1f && bytes[1] == 0x8b,
+        "output is not a gzip archive"
+    );
+    std::fs::remove_file(&out).ok();
+}
+
+#[test]
+fn build_refuses_nonconformant_bundle() {
+    let out = tmp("bad.tar.gz");
+    let _ = std::fs::remove_file(&out);
+    let res = bin()
+        .arg("build")
+        .arg(case("missing-type"))
+        .arg("-o")
+        .arg(&out)
+        .output()
+        .unwrap();
+    assert!(
+        !res.status.success(),
+        "build must refuse a non-conformant bundle"
+    );
+    assert!(String::from_utf8_lossy(&res.stderr).contains("not OKF-conformant"));
+    std::fs::remove_file(&out).ok();
+}
+
 /// okftool's own documentation is an OKF bundle; it must stay conformant and
 /// lint-clean under the **strict** profile (via `docs/okf/.okftool.yaml`).
 fn self_docs() -> PathBuf {

@@ -65,6 +65,23 @@ jobs:
           zip: windows
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  bundle:
+    name: docs OKF bundle artifact
+    # Runs after `binaries` so the GitHub Release already exists.
+    needs: [guard, binaries]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Package docs/okf and upload to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cargo run -q -p okftool-cli -- build docs/okf -o "okftool-${VERSION}.tar.gz"
+          gh release upload "${GITHUB_REF_NAME}" "okftool-${VERSION}.tar.gz" --clobber
+
   npm:
     name: publish wasm package
     needs: guard

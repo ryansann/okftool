@@ -1,4 +1,4 @@
-//! WebAssembly bindings — the `okftool` npm package consumed by the desktop app,
+//! WebAssembly bindings — the `@ryansann/okftool` npm package consumed by the desktop app,
 //! a Node/edge API, or the browser. JS passes file contents in (wasm has no
 //! filesystem); okftool-core does the rest.
 

@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-06-23
+
 ### Added
 
 - `okftool-core`: OKF parser, §9 `validate` (conformance), and a configurable
@@ -24,4 +26,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Self-documenting OKF bundle at `docs/okf/`, linted under the strict profile in
   CI (dogfood).
 
-[Unreleased]: https://github.com/ryansann/okftool/commits/main
+[Unreleased]: https://github.com/ryansann/okftool/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/ryansann/okftool/releases/tag/v0.1.2

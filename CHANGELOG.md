@@ -6,6 +6,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-06-23
+
+### Fixed
+
+- Fixed npm publishing in the release workflow by publishing from the
+  `wasm-pack` output directory.
+- Updated the Intel macOS release runner label to a currently available
+  GitHub-hosted runner.
+- Made `okftool-core` self-contained for crates.io packaging by moving embedded
+  presets into the crate.
+- Included `README.md` and `LICENSE` in the generated npm package.
+
 ## [0.1.2] - 2026-06-23
 
 ### Added
@@ -26,5 +38,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Self-documenting OKF bundle at `docs/okf/`, linted under the strict profile in
   CI (dogfood).
 
-[Unreleased]: https://github.com/ryansann/okftool/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/ryansann/okftool/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/ryansann/okftool/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/ryansann/okftool/releases/tag/v0.1.2

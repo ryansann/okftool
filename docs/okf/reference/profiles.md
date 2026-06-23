@@ -9,7 +9,8 @@ timestamp: 2026-06-23
 
 A profile is a named preset selected with `extends`. okftool ships three; a
 bundle inherits one and overrides what it needs. These blocks are the actual
-presets compiled into okftool (kept in sync with `presets/` by a test).
+presets compiled into okftool (kept in sync with `crates/okftool-core/presets/`
+by a test).
 
 ## okf-recommended
 

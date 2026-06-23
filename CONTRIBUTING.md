@@ -44,9 +44,10 @@ A rule is a small struct in `crates/okftool-core/src/lint/rules.rs`. The pattern
    `crates/okftool-core/tests/cases.rs` asserting the exact code set.
 4. **Document it** with a `LintRule` concept in
    `docs/okf/reference/rules/<id>.md` and add it to that directory's `index.md`.
-5. **Update the affected presets** (`presets/okf-strict.yaml`,
-   `presets/okf-minimal.yaml`) and re-sync the embedded copies in
-   `docs/okf/reference/profiles.md` (a test guards this).
+5. **Update the affected presets**
+   (`crates/okftool-core/presets/okf-strict.yaml`,
+   `crates/okftool-core/presets/okf-minimal.yaml`) and re-sync the embedded
+   copies in `docs/okf/reference/profiles.md` (a test guards this).
 6. If your rule fires on the `fixtures/cases/all-rules` kitchen-sink, update the
    expected set in `tests/golden.rs`. If it would fire on the self-doc bundle,
    fix the docs so they stay clean (the dogfood must pass under strict).

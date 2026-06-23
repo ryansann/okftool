@@ -41,7 +41,7 @@ jobs:
           - target: aarch64-apple-darwin
             os: macos-14
           - target: x86_64-apple-darwin
-            os: macos-13
+            os: macos-15-intel
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
           - target: aarch64-unknown-linux-gnu
@@ -94,14 +94,17 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
       - uses: jetli/wasm-pack-action@v0.4.0
-      - run: wasm-pack build crates/okftool-wasm --target bundler --out-name okftool --out-dir pkg
+      - name: Build npm package
+        run: |
+          wasm-pack build crates/okftool-wasm --target bundler --out-name okftool --out-dir pkg
+          cp README.md LICENSE crates/okftool-wasm/pkg/
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
       - name: Publish
         run: |
-          cd pkg
+          cd crates/okftool-wasm/pkg
           npm pkg set name="okftool"
           npm publish --access public
         env:

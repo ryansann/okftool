@@ -30,10 +30,8 @@ wasm: ## Compile the wasm crate (CI)
 	$(CARGO) build -p okftool-wasm --target $(WASM_TARGET) --release
 
 .PHONY: pkg
-pkg: ## Build the npm package (bundler target → crates/okftool-wasm/pkg)
-	$(WASM_PACK) build crates/okftool-wasm --target bundler --out-name okftool --out-dir pkg
-	cp README.md LICENSE crates/okftool-wasm/pkg/
-	cd crates/okftool-wasm/pkg && npm pkg set name="@ryansann/okftool" repository.url="git+https://github.com/ryansann/okftool.git"
+pkg: ## Build the npm package (browser + node targets → crates/okftool-wasm/pkg)
+	WASM_PACK=$(WASM_PACK) scripts/build-npm-package.sh
 
 .PHONY: build
 build: ## Release build of the CLI

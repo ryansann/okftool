@@ -15,3 +15,5 @@ A type with a single member is often a typo or over-specialization that fragment
 - **Fixable:** no
 
 Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+
+Related local context: [rule taxonomy](/reference/rules/taxonomy.md).

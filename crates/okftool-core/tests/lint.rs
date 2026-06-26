@@ -8,8 +8,20 @@ fn bundle_with(files: Vec<(&str, &str)>) -> okftool_core::Bundle {
     build_bundle(files)
 }
 
+fn bundle_with_owned(files: Vec<(&str, String)>) -> okftool_core::Bundle {
+    build_bundle(files)
+}
+
 fn codes(diags: &[okftool_core::Diagnostic]) -> Vec<&str> {
     diags.iter().map(|d| d.code.as_str()).collect()
+}
+
+fn clean_doc(body: &str) -> String {
+    format!("---\ntype: Note\ndescription: d\ntimestamp: 2026-01-01\n---\n{body}\n")
+}
+
+fn clean_doc_with_frontmatter(extra: &str, body: &str) -> String {
+    format!("---\ntype: Note\ndescription: d\ntimestamp: 2026-01-01\n{extra}---\n{body}\n")
 }
 
 #[test]
@@ -211,4 +223,244 @@ fn rule_descriptors_are_rich_enough_for_okfview() {
     assert!(!desc.category.description.is_empty());
     assert_eq!(desc.default_severity, "warn");
     assert!(desc.docs_path.ends_with("require-description.md"));
+}
+
+#[test]
+fn graph_structure_flags_excessive_bridging_ratio_and_leaf_fanout() {
+    let source = clean_doc(
+        "# Source\n- [local](/a/local.md)\n- This bridge connects the topic to [b](/b/one.md) because the same model appears in another area.\n- This bridge connects the topic to [c](/c/one.md) because the same model appears in another area.\n- This bridge connects the topic to [d](/d/one.md) because the same model appears in another area.\n",
+    );
+    let bundle = bundle_with_owned(vec![
+        ("a/source.md", source),
+        (
+            "a/local.md",
+            clean_doc("# Local\n- [source](/a/source.md)\n"),
+        ),
+        ("b/one.md", clean_doc("# B\n- [source](/a/source.md)\n")),
+        ("c/one.md", clean_doc("# C\n- [source](/a/source.md)\n")),
+        ("d/one.md", clean_doc("# D\n- [source](/a/source.md)\n")),
+    ]);
+    let diags = lint(&bundle, &ResolvedConfig::recommended());
+    let source_codes: Vec<&str> = diags
+        .iter()
+        .filter(|d| d.file == "a/source.md")
+        .map(|d| d.code.as_str())
+        .collect();
+    assert!(
+        source_codes.contains(&"graph-structure/no-excessive-bridging"),
+        "{source_codes:?}"
+    );
+    assert!(
+        source_codes.contains(&"graph-structure/bridging-ratio"),
+        "{source_codes:?}"
+    );
+    assert!(
+        source_codes.contains(&"graph-structure/no-leaf-bridge-fanout"),
+        "{source_codes:?}"
+    );
+}
+
+#[test]
+fn graph_structure_requires_local_cohesion_for_non_hubs() {
+    let source = clean_doc(
+        "# Source\n- This bridge connects the topic to [b](/b/one.md) because the same model appears in another area.\n- This bridge connects the topic to [c](/c/one.md) because the same model appears in another area.\n",
+    );
+    let bundle = bundle_with_owned(vec![
+        ("a/source.md", source),
+        ("b/one.md", clean_doc("# B\n- [source](/a/source.md)\n")),
+        ("c/one.md", clean_doc("# C\n- [source](/a/source.md)\n")),
+    ]);
+    let diags = lint(&bundle, &ResolvedConfig::recommended());
+    assert!(
+        diags
+            .iter()
+            .any(|d| { d.file == "a/source.md" && d.code == "graph-structure/min-local-cohesion" }),
+        "{diags:#?}"
+    );
+}
+
+#[test]
+fn graph_structure_requires_prose_around_bridge_links() {
+    let bundle = bundle_with_owned(vec![
+        ("a/source.md", clean_doc("# Source\n- [b](/b/one.md)\n")),
+        ("b/one.md", clean_doc("# B\n- [source](/a/source.md)\n")),
+    ]);
+    let diags = lint(&bundle, &ResolvedConfig::recommended());
+    assert!(
+        diags.iter().any(|d| {
+            d.file == "a/source.md" && d.code == "graph-structure/require-bridge-prose"
+        }),
+        "{diags:#?}"
+    );
+}
+
+#[test]
+fn graph_structure_prefers_neighborhood_index_over_many_deep_links() {
+    let source = clean_doc(
+        "# Source\n- This bridge connects the topic to [one](/b/one.md) because the same model appears in another area.\n- This bridge connects the topic to [two](/b/two.md) because the same model appears in another area.\n- This bridge connects the topic to [three](/b/three.md) because the same model appears in another area.\n",
+    );
+    let bundle = bundle_with_owned(vec![
+        ("a/source.md", source),
+        ("b/one.md", clean_doc("# One\n- [source](/a/source.md)\n")),
+        ("b/two.md", clean_doc("# Two\n- [source](/a/source.md)\n")),
+        (
+            "b/three.md",
+            clean_doc("# Three\n- [source](/a/source.md)\n"),
+        ),
+    ]);
+    let diags = lint(&bundle, &ResolvedConfig::recommended());
+    assert!(
+        diags.iter().any(|d| {
+            d.file == "a/source.md" && d.code == "graph-structure/prefer-neighborhood-index-link"
+        }),
+        "{diags:#?}"
+    );
+}
+
+#[test]
+fn graph_structure_allows_configured_neighborhoods_to_override_inference() {
+    let source = clean_doc_with_frontmatter(
+        "neighborhood: source-frontmatter\n",
+        "# Source\n- [target](/b/target.md)\n",
+    );
+    let target = clean_doc_with_frontmatter(
+        "neighborhood: target-frontmatter\n",
+        "# Target\n- [source](/a/source.md)\n",
+    );
+    let bundle = bundle_with_owned(vec![("a/source.md", source), ("b/target.md", target)]);
+    let cfg = ResolvedConfig::from_yaml(
+        "graph:\n  neighborhoods:\n    shared:\n      paths:\n        - a/source.md\n        - b/target.md\n",
+    )
+    .unwrap();
+    let diags = lint(&bundle, &cfg);
+    assert!(
+        diags
+            .iter()
+            .all(|d| !d.code.starts_with("graph-structure/")),
+        "{diags:#?}"
+    );
+}
+
+#[test]
+fn graph_structure_neighborhood_config_accepts_globs() {
+    let bundle = bundle_with_owned(vec![
+        (
+            "reference/rules/source.md",
+            clean_doc("# Source\n- [target](/reference/validation.md)\n"),
+        ),
+        (
+            "reference/validation.md",
+            clean_doc("# Validation\n- [source](/reference/rules/source.md)\n"),
+        ),
+    ]);
+    let cfg = ResolvedConfig::from_yaml(
+        "graph:\n  neighborhoods:\n    reference:\n      paths:\n        - reference/*.md\n        - reference/rules/*.md\n",
+    )
+    .unwrap();
+    let diags = lint(&bundle, &cfg);
+    assert!(
+        diags
+            .iter()
+            .all(|d| !d.code.starts_with("graph-structure/")),
+        "{diags:#?}"
+    );
+}
+
+#[test]
+fn graph_structure_detects_dense_neighborhood_cliques() {
+    let mut files: Vec<(String, String)> = Vec::new();
+    for i in 1..=5 {
+        let mut body = format!("# Node {i}\n");
+        for j in 1..=5 {
+            if i != j {
+                body.push_str(&format!("- [node {j}](/a/node{j}.md)\n"));
+            }
+        }
+        files.push((format!("a/node{i}.md"), clean_doc(&body)));
+    }
+    let bundle = bundle_with(
+        files
+            .iter()
+            .map(|(path, content)| (path.as_str(), content.as_str()))
+            .collect(),
+    );
+    let diags = lint(&bundle, &ResolvedConfig::recommended());
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "graph-structure/no-complete-neighborhood-clique"),
+        "{diags:#?}"
+    );
+}
+
+#[test]
+fn graph_structure_asks_high_fanout_concepts_to_declare_hubs() {
+    let mut body = "# Source\n".to_string();
+    let mut files: Vec<(String, String)> = Vec::new();
+    for i in 1..=8 {
+        body.push_str(&format!("- [target {i}](/n{i}/target.md)\n"));
+        files.push((
+            format!("n{i}/target.md"),
+            clean_doc(&format!("# Target {i}\n- [source](/a/source.md)\n")),
+        ));
+    }
+    files.push(("a/source.md".to_string(), clean_doc(&body)));
+    let bundle = bundle_with(
+        files
+            .iter()
+            .map(|(path, content)| (path.as_str(), content.as_str()))
+            .collect(),
+    );
+    let diags = lint(&bundle, &ResolvedConfig::recommended());
+    assert!(
+        diags
+            .iter()
+            .any(|d| { d.file == "a/source.md" && d.code == "graph-structure/declare-hubs" }),
+        "{diags:#?}"
+    );
+}
+
+#[test]
+fn graph_structure_hub_true_exempts_leaf_shape_rules() {
+    let mut body = "# Source\n".to_string();
+    let mut files: Vec<(String, String)> = Vec::new();
+    for i in 1..=4 {
+        body.push_str(&format!("- [target {i}](/n{i}/target.md)\n"));
+        files.push((
+            format!("n{i}/target.md"),
+            clean_doc(&format!("# Target {i}\n- [source](/a/source.md)\n")),
+        ));
+    }
+    files.push((
+        "a/source.md".to_string(),
+        clean_doc_with_frontmatter("hub: true\n", &body),
+    ));
+    let bundle = bundle_with(
+        files
+            .iter()
+            .map(|(path, content)| (path.as_str(), content.as_str()))
+            .collect(),
+    );
+    let diags = lint(&bundle, &ResolvedConfig::recommended());
+    let source_codes: Vec<&str> = diags
+        .iter()
+        .filter(|d| d.file == "a/source.md")
+        .map(|d| d.code.as_str())
+        .collect();
+    assert!(
+        !source_codes.contains(&"graph-structure/no-excessive-bridging"),
+        "{source_codes:?}"
+    );
+    assert!(
+        !source_codes.contains(&"graph-structure/bridging-ratio"),
+        "{source_codes:?}"
+    );
+    assert!(
+        !source_codes.contains(&"graph-structure/no-leaf-bridge-fanout"),
+        "{source_codes:?}"
+    );
+    assert!(
+        !source_codes.contains(&"graph-structure/min-local-cohesion"),
+        "{source_codes:?}"
+    );
 }

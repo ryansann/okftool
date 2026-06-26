@@ -15,3 +15,5 @@ A concept absent from every index is unreachable via progressive disclosure — 
 - **Fixable:** no
 
 Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+
+Related local context: [rule taxonomy](/reference/rules/taxonomy.md).

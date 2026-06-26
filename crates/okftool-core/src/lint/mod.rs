@@ -188,18 +188,57 @@ impl Finding {
     }
 }
 
-/// Precomputed link-graph degrees (self-links and external/broken links excluded).
+/// A deduped internal concept edge.
+#[derive(Debug, Clone)]
+pub struct GraphEdge {
+    pub source: String,
+    pub target: String,
+    pub source_neighborhood: String,
+    pub target_neighborhood: String,
+}
+
+impl GraphEdge {
+    pub fn cohesive(&self) -> bool {
+        self.source_neighborhood == self.target_neighborhood
+    }
+
+    pub fn bridging(&self) -> bool {
+        !self.cohesive()
+    }
+}
+
+/// Precomputed link-graph facts (self-links and external/broken links excluded).
 pub struct Graph {
     pub out_degree: HashMap<String, usize>,
     pub in_degree: HashMap<String, usize>,
+    pub neighborhoods: HashMap<String, String>,
+    pub edges: Vec<GraphEdge>,
+    pub outgoing_edges: HashMap<String, Vec<GraphEdge>>,
+    pub neighborhood_members: HashMap<String, Vec<String>>,
 }
 
 impl Graph {
-    fn build(bundle: &Bundle) -> Self {
+    fn build(bundle: &Bundle, config: &ResolvedConfig) -> Self {
         let ids: HashSet<&str> = bundle.concepts.iter().map(|c| c.id.as_str()).collect();
         let mut out_degree: HashMap<String, usize> =
             bundle.concepts.iter().map(|c| (c.id.clone(), 0)).collect();
         let mut in_degree: HashMap<String, usize> = out_degree.clone();
+        let mut neighborhoods: HashMap<String, String> = HashMap::new();
+        let mut neighborhood_members: HashMap<String, Vec<String>> = HashMap::new();
+        for concept in &bundle.concepts {
+            let neighborhood = config.neighborhood_for(concept);
+            neighborhoods.insert(concept.id.clone(), neighborhood.clone());
+            neighborhood_members
+                .entry(neighborhood)
+                .or_default()
+                .push(concept.id.clone());
+        }
+        let mut edges = Vec::new();
+        let mut outgoing_edges: HashMap<String, Vec<GraphEdge>> = bundle
+            .concepts
+            .iter()
+            .map(|c| (c.id.clone(), Vec::new()))
+            .collect();
 
         for concept in &bundle.concepts {
             let mut seen = HashSet::new();
@@ -211,6 +250,23 @@ impl Graph {
                     {
                         *out_degree.get_mut(&concept.id).unwrap() += 1;
                         *in_degree.get_mut(target).unwrap() += 1;
+                        let edge = GraphEdge {
+                            source: concept.id.clone(),
+                            target: target.clone(),
+                            source_neighborhood: neighborhoods
+                                .get(&concept.id)
+                                .cloned()
+                                .unwrap_or_default(),
+                            target_neighborhood: neighborhoods
+                                .get(target)
+                                .cloned()
+                                .unwrap_or_default(),
+                        };
+                        edges.push(edge.clone());
+                        outgoing_edges
+                            .entry(concept.id.clone())
+                            .or_default()
+                            .push(edge);
                     }
                 }
             }
@@ -218,6 +274,10 @@ impl Graph {
         Graph {
             out_degree,
             in_degree,
+            neighborhoods,
+            edges,
+            outgoing_edges,
+            neighborhood_members,
         }
     }
 }
@@ -287,7 +347,7 @@ fn inline_disables(bundle: &Bundle) -> HashMap<String, HashSet<String>> {
 /// Run all lint rules against a bundle, returning resolved diagnostics
 /// (`spec == false`). Findings resolving to `Off` are dropped.
 pub fn lint(bundle: &Bundle, config: &ResolvedConfig) -> Vec<Diagnostic> {
-    let graph = Graph::build(bundle);
+    let graph = Graph::build(bundle, config);
     let disabled = inline_disables(bundle);
     let mut out = Vec::new();
 

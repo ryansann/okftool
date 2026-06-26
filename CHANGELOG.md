@@ -6,6 +6,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-06-25
+
+### Fixed
+
+- Made crates.io publishing retry-safe after partial release success and switched
+  crates.io propagation checks to exact `cargo info crate@version` lookups.
+- Updated GitHub Actions workflow action versions to Node 24-compatible majors.
+
 ## [0.2.1] - 2026-06-25
 
 ### Fixed
@@ -70,7 +78,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Self-documenting OKF bundle at `docs/okf/`, linted under the strict profile in
   CI (dogfood).
 
-[Unreleased]: https://github.com/ryansann/okftool/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/ryansann/okftool/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/ryansann/okftool/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/ryansann/okftool/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/ryansann/okftool/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/ryansann/okftool/compare/v0.1.4...v0.1.5

@@ -15,3 +15,5 @@ A blanket ban on relative links for bundles that want every cross-link to surviv
 - **Fixable:** yes
 
 Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+
+Related local context: [rule taxonomy](/reference/rules/taxonomy.md).

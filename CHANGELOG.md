@@ -12,6 +12,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Added canonical namespaced lint rule IDs, alias-aware config resolution, and
   richer diagnostic/rule metadata for okfview.
+- Added graph-structure rules for neighborhood cohesion, bridge fanout, bridge
+  prose, dense local cliques, and explicit hub declaration.
 - Published a dual-target npm package with browser/Vite and Node/Electron-main
   entrypoints.
 

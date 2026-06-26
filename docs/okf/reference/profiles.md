@@ -43,6 +43,14 @@ rules:
   linking/no-self-link: error
   topology/no-orphan-concepts: error
   topology/no-unindexed-concepts: error
+  graph-structure/no-excessive-bridging: error
+  graph-structure/bridging-ratio: error
+  graph-structure/no-leaf-bridge-fanout: error
+  graph-structure/require-bridge-prose: error
+  graph-structure/prefer-neighborhood-index-link: error
+  graph-structure/no-complete-neighborhood-clique: error
+  graph-structure/min-local-cohesion: error
+  graph-structure/declare-hubs: error
   body/structural-body: error
   body/body-not-empty: error
   index-log/index-entry-has-description: warn
@@ -69,6 +77,14 @@ rules:
   topology/no-orphan-concepts: "off"
   topology/no-unindexed-concepts: "off"
   topology/max-out-degree: "off"
+  graph-structure/no-excessive-bridging: "off"
+  graph-structure/bridging-ratio: "off"
+  graph-structure/no-leaf-bridge-fanout: "off"
+  graph-structure/require-bridge-prose: "off"
+  graph-structure/prefer-neighborhood-index-link: "off"
+  graph-structure/no-complete-neighborhood-clique: "off"
+  graph-structure/min-local-cohesion: "off"
+  graph-structure/declare-hubs: "off"
   body/structural-body: "off"
   body/body-not-empty: "off"
   linking/no-self-link: "off"

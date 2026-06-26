@@ -7,9 +7,9 @@ use std::sync::OnceLock;
 use regex::Regex;
 use serde_json::Value;
 
-use super::{Category, Finding, LintContext, Rule, RuleMeta};
+use super::{Category, Finding, GraphEdge, LintContext, Rule, RuleMeta};
 use crate::links::{is_external, resolve_target};
-use crate::model::Severity;
+use crate::model::{Concept, Link, Severity};
 
 pub fn registry() -> Vec<Box<dyn Rule>> {
     vec![
@@ -31,6 +31,15 @@ pub fn registry() -> Vec<Box<dyn Rule>> {
         Box::new(NoOrphanConcepts),
         Box::new(NoUnindexedConcepts),
         Box::new(MaxOutDegree),
+        // graph structure
+        Box::new(NoExcessiveBridging),
+        Box::new(BridgingRatio),
+        Box::new(NoLeafBridgeFanout),
+        Box::new(RequireBridgeProse),
+        Box::new(PreferNeighborhoodIndexLink),
+        Box::new(NoCompleteNeighborhoodClique),
+        Box::new(MinLocalCohesion),
+        Box::new(DeclareHubs),
         // body
         Box::new(StructuralBody),
         Box::new(BodyNotEmpty),
@@ -319,6 +328,332 @@ impl Rule for MaxOutDegree {
                     Finding::new(
                         &c.path,
                         format!("Concept links out to {deg} concepts (cap {max})."),
+                    )
+                })
+            })
+            .collect()
+    }
+}
+
+// ---- graph structure -----------------------------------------------------------
+
+struct NoExcessiveBridging;
+impl Rule for NoExcessiveBridging {
+    fn meta(&self) -> RuleMeta {
+        RuleMeta {
+            id: "graph-structure/no-excessive-bridging",
+            category: Category::GraphStructure,
+            summary: "Ordinary concept has too many outgoing cross-neighborhood links.",
+            rationale: "A leaf concept that points all over the bundle is usually acting as an undeclared router. Prefer local links plus one intentional bridge into another neighborhood.",
+            default_severity: Severity::Warn,
+            fixable: false,
+        }
+    }
+    fn check(&self, ctx: &LintContext) -> Vec<Finding> {
+        let max = option_usize(ctx.options, "max", 2);
+        ctx.bundle
+            .concepts
+            .iter()
+            .filter(|c| !is_declared_hub(c, ctx.options))
+            .filter_map(|c| {
+                let bridges = outgoing_bridges(ctx, &c.id).len();
+                (bridges > max).then(|| {
+                    Finding::new(
+                        &c.path,
+                        format!(
+                            "Concept has {bridges} outgoing bridging links across neighborhoods (max {max})."
+                        ),
+                    )
+                })
+            })
+            .collect()
+    }
+}
+
+struct BridgingRatio;
+impl Rule for BridgingRatio {
+    fn meta(&self) -> RuleMeta {
+        RuleMeta {
+            id: "graph-structure/bridging-ratio",
+            category: Category::GraphStructure,
+            summary: "Most outgoing links leave the concept's neighborhood.",
+            rationale: "Cross-neighborhood links are valuable, but when they dominate a leaf concept's outlinks the concept is probably misplaced or should be extracted into an overview/bridge concept.",
+            default_severity: Severity::Warn,
+            fixable: false,
+        }
+    }
+    fn check(&self, ctx: &LintContext) -> Vec<Finding> {
+        let max_ratio = option_f64(ctx.options, "maxRatio", 0.4);
+        let min_out_degree = option_usize(ctx.options, "minOutDegree", 3);
+        ctx.bundle
+            .concepts
+            .iter()
+            .filter(|c| !is_declared_hub(c, ctx.options))
+            .filter_map(|c| {
+                let out_degree = ctx.graph.out_degree.get(&c.id).copied().unwrap_or(0);
+                if out_degree < min_out_degree {
+                    return None;
+                }
+                let bridges = outgoing_bridges(ctx, &c.id).len();
+                let ratio = bridges as f64 / out_degree as f64;
+                (ratio > max_ratio).then(|| {
+                    Finding::new(
+                        &c.path,
+                        format!(
+                            "Concept sends {bridges}/{out_degree} outgoing links ({:.0}%) outside its neighborhood (max {:.0}%).",
+                            ratio * 100.0,
+                            max_ratio * 100.0,
+                        ),
+                    )
+                })
+            })
+            .collect()
+    }
+}
+
+struct NoLeafBridgeFanout;
+impl Rule for NoLeafBridgeFanout {
+    fn meta(&self) -> RuleMeta {
+        RuleMeta {
+            id: "graph-structure/no-leaf-bridge-fanout",
+            category: Category::GraphStructure,
+            summary: "Leaf concept bridges into too many target neighborhoods.",
+            rationale: "A normal concept can cite another area, but spanning several neighborhoods is usually a sign that an overview/map concept should carry those relationships.",
+            default_severity: Severity::Warn,
+            fixable: false,
+        }
+    }
+    fn check(&self, ctx: &LintContext) -> Vec<Finding> {
+        let max = option_usize(ctx.options, "maxTargetNeighborhoods", 1);
+        ctx.bundle
+            .concepts
+            .iter()
+            .filter(|c| !is_declared_hub(c, ctx.options))
+            .filter_map(|c| {
+                let neighborhoods = target_bridge_neighborhoods(ctx, &c.id);
+                (neighborhoods.len() > max).then(|| {
+                    Finding::new(
+                        &c.path,
+                        format!(
+                            "Leaf concept bridges to {} neighborhoods: {} (max {max}).",
+                            neighborhoods.len(),
+                            quoted(&neighborhoods.iter().map(String::as_str).collect::<Vec<_>>())
+                        ),
+                    )
+                })
+            })
+            .collect()
+    }
+}
+
+struct RequireBridgeProse;
+impl Rule for RequireBridgeProse {
+    fn meta(&self) -> RuleMeta {
+        RuleMeta {
+            id: "graph-structure/require-bridge-prose",
+            category: Category::GraphStructure,
+            summary: "Bridging link appears without enough explanatory prose.",
+            rationale: "OKF edges are intentionally untyped, so cross-neighborhood links need nearby prose explaining why the two areas relate.",
+            default_severity: Severity::Warn,
+            fixable: false,
+        }
+    }
+    fn check(&self, ctx: &LintContext) -> Vec<Finding> {
+        let min_words = option_usize(ctx.options, "minSurroundingWords", 6);
+        let mut out = Vec::new();
+        for concept in &ctx.bundle.concepts {
+            if is_declared_hub(concept, ctx.options) {
+                continue;
+            }
+            for edge in outgoing_bridges(ctx, &concept.id) {
+                let Some(link) = concept
+                    .outgoing
+                    .iter()
+                    .find(|link| link.target_id.as_deref() == Some(edge.target.as_str()))
+                else {
+                    continue;
+                };
+                if bridge_link_has_prose(&concept.body, link, min_words) {
+                    continue;
+                }
+                out.push(Finding::new(
+                    &concept.path,
+                    format!(
+                        "Bridging link `{}` to neighborhood `{}` needs explanatory prose.",
+                        link.text, edge.target_neighborhood
+                    ),
+                ));
+            }
+        }
+        out
+    }
+}
+
+struct PreferNeighborhoodIndexLink;
+impl Rule for PreferNeighborhoodIndexLink {
+    fn meta(&self) -> RuleMeta {
+        RuleMeta {
+            id: "graph-structure/prefer-neighborhood-index-link",
+            category: Category::GraphStructure,
+            summary: "Concept deep-links to many concepts in another neighborhood.",
+            rationale: "Several cross-neighborhood links to the same area usually carry less signal than one bridge to that neighborhood's index or overview concept.",
+            default_severity: Severity::Warn,
+            fixable: false,
+        }
+    }
+    fn check(&self, ctx: &LintContext) -> Vec<Finding> {
+        let threshold = option_usize(ctx.options, "threshold", 3);
+        let mut out = Vec::new();
+        for concept in &ctx.bundle.concepts {
+            if is_declared_hub(concept, ctx.options) {
+                continue;
+            }
+            let mut by_neighborhood: HashMap<&str, usize> = HashMap::new();
+            for edge in outgoing_bridges(ctx, &concept.id) {
+                *by_neighborhood
+                    .entry(edge.target_neighborhood.as_str())
+                    .or_default() += 1;
+            }
+            for (neighborhood, count) in by_neighborhood {
+                if count >= threshold
+                    && !links_to_neighborhood_entrypoint(concept, neighborhood, ctx)
+                {
+                    out.push(Finding::new(
+                        &concept.path,
+                        format!(
+                            "Concept links to {count} concepts in neighborhood `{neighborhood}`; prefer one link to that neighborhood's index or overview."
+                        ),
+                    ));
+                }
+            }
+        }
+        out
+    }
+}
+
+struct NoCompleteNeighborhoodClique;
+impl Rule for NoCompleteNeighborhoodClique {
+    fn meta(&self) -> RuleMeta {
+        RuleMeta {
+            id: "graph-structure/no-complete-neighborhood-clique",
+            category: Category::GraphStructure,
+            summary: "Neighborhood is too densely interlinked.",
+            rationale: "Dense local cliques make every edge less meaningful. A coherent neighborhood should have selective links, not every concept pointing at most others.",
+            default_severity: Severity::Warn,
+            fixable: false,
+        }
+    }
+    fn check(&self, ctx: &LintContext) -> Vec<Finding> {
+        let max_density = option_f64(ctx.options, "maxDensity", 0.45);
+        let min_nodes = option_usize(ctx.options, "minNodes", 5);
+        let path_by_id = concept_paths(ctx);
+        let mut out = Vec::new();
+        for (neighborhood, members) in &ctx.graph.neighborhood_members {
+            let nodes = members.len();
+            if nodes < min_nodes {
+                continue;
+            }
+            let local_edges = ctx
+                .graph
+                .edges
+                .iter()
+                .filter(|edge| edge.source_neighborhood == *neighborhood && edge.cohesive())
+                .count();
+            let possible = nodes * (nodes - 1);
+            if possible == 0 {
+                continue;
+            }
+            let density = local_edges as f64 / possible as f64;
+            if density > max_density {
+                let file = members
+                    .iter()
+                    .filter_map(|id| path_by_id.get(id.as_str()))
+                    .min()
+                    .copied()
+                    .unwrap_or_default();
+                out.push(Finding::new(
+                    file,
+                    format!(
+                        "Neighborhood `{neighborhood}` has {local_edges}/{possible} possible directed local links ({:.0}% density, max {:.0}%).",
+                        density * 100.0,
+                        max_density * 100.0
+                    ),
+                ));
+            }
+        }
+        out
+    }
+}
+
+struct MinLocalCohesion;
+impl Rule for MinLocalCohesion {
+    fn meta(&self) -> RuleMeta {
+        RuleMeta {
+            id: "graph-structure/min-local-cohesion",
+            category: Category::GraphStructure,
+            summary: "Concept has outgoing links but no local cohesive edge.",
+            rationale: "A concept should visibly belong somewhere. If every outgoing edge leaves its neighborhood, the concept may be misplaced or should be linked to local context first.",
+            default_severity: Severity::Warn,
+            fixable: false,
+        }
+    }
+    fn check(&self, ctx: &LintContext) -> Vec<Finding> {
+        let require_local = option_bool(ctx.options, "requireLocalEdge", true);
+        if !require_local {
+            return Vec::new();
+        }
+        ctx.bundle
+            .concepts
+            .iter()
+            .filter(|c| !is_declared_hub(c, ctx.options))
+            .filter_map(|c| {
+                let edges = ctx.graph.outgoing_edges.get(&c.id)?;
+                if edges.is_empty() || edges.iter().any(|edge| edge.cohesive()) {
+                    return None;
+                }
+                let neighborhood = ctx
+                    .graph
+                    .neighborhoods
+                    .get(&c.id)
+                    .map(String::as_str)
+                    .unwrap_or("");
+                Some(Finding::new(
+                    &c.path,
+                    format!(
+                        "Concept has outgoing links but none stay inside its neighborhood `{neighborhood}`."
+                    ),
+                ))
+            })
+            .collect()
+    }
+}
+
+struct DeclareHubs;
+impl Rule for DeclareHubs {
+    fn meta(&self) -> RuleMeta {
+        RuleMeta {
+            id: "graph-structure/declare-hubs",
+            category: Category::GraphStructure,
+            summary: "High-outdegree concept is not declared as a hub.",
+            rationale: "High fanout is fine when intentional. Marking hubs makes graph shape explicit and lets stricter leaf rules focus on ordinary concepts.",
+            default_severity: Severity::Warn,
+            fixable: false,
+        }
+    }
+    fn check(&self, ctx: &LintContext) -> Vec<Finding> {
+        let out_degree = option_usize(ctx.options, "outDegree", 8);
+        ctx.bundle
+            .concepts
+            .iter()
+            .filter(|c| !is_declared_hub(c, ctx.options))
+            .filter_map(|c| {
+                let degree = ctx.graph.out_degree.get(&c.id).copied().unwrap_or(0);
+                (degree >= out_degree).then(|| {
+                    Finding::new(
+                        &c.path,
+                        format!(
+                            "Concept links out to {degree} concepts; declare it as a hub with `hub: true`, a hub tag, or a configured hub type/id."
+                        ),
                     )
                 })
             })
@@ -652,4 +987,171 @@ fn quoted(items: &[&str]) -> String {
         .map(|s| format!("`{s}`"))
         .collect::<Vec<_>>()
         .join(", ")
+}
+
+fn option_usize(options: &Value, key: &str, default: usize) -> usize {
+    options
+        .get(key)
+        .and_then(|v| v.as_u64())
+        .map(|v| v as usize)
+        .unwrap_or(default)
+}
+
+fn option_f64(options: &Value, key: &str, default: f64) -> f64 {
+    options.get(key).and_then(|v| v.as_f64()).unwrap_or(default)
+}
+
+fn option_bool(options: &Value, key: &str, default: bool) -> bool {
+    options
+        .get(key)
+        .and_then(|v| v.as_bool())
+        .unwrap_or(default)
+}
+
+fn option_strings(options: &Value, key: &str, default: &[&str]) -> HashSet<String> {
+    options
+        .get(key)
+        .and_then(|v| v.as_array())
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(|item| item.as_str().map(ToString::to_string))
+                .collect()
+        })
+        .unwrap_or_else(|| default.iter().map(|s| s.to_string()).collect())
+}
+
+fn is_declared_hub(concept: &Concept, options: &Value) -> bool {
+    if concept
+        .frontmatter
+        .get("hub")
+        .and_then(|v| v.as_bool().or_else(|| v.as_str().map(|s| s == "true")))
+        .unwrap_or(false)
+    {
+        return true;
+    }
+
+    let hub_ids = option_strings(options, "hubIds", &[]);
+    if hub_ids.contains(&concept.id) {
+        return true;
+    }
+
+    let hub_types = option_strings(
+        options,
+        "hubTypes",
+        &["Overview", "Reference", "Map", "Index"],
+    );
+    if concept
+        .concept_type
+        .as_deref()
+        .is_some_and(|t| hub_types.contains(t))
+    {
+        return true;
+    }
+
+    let hub_tags = option_strings(options, "hubTags", &["hub", "overview", "map"]);
+    concept.tags.iter().any(|tag| hub_tags.contains(tag))
+}
+
+fn outgoing_bridges<'a>(ctx: &'a LintContext<'_>, id: &str) -> Vec<&'a GraphEdge> {
+    ctx.graph
+        .outgoing_edges
+        .get(id)
+        .into_iter()
+        .flatten()
+        .filter(|edge| edge.bridging())
+        .collect()
+}
+
+fn target_bridge_neighborhoods(ctx: &LintContext, id: &str) -> Vec<String> {
+    let mut neighborhoods: Vec<String> = outgoing_bridges(ctx, id)
+        .into_iter()
+        .map(|edge| edge.target_neighborhood.clone())
+        .collect();
+    neighborhoods.sort();
+    neighborhoods.dedup();
+    neighborhoods
+}
+
+fn bridge_link_has_prose(body: &str, link: &Link, min_surrounding_words: usize) -> bool {
+    let href_pattern = format!("]({}", link.href);
+    for line in body.lines() {
+        if !line.contains(&href_pattern)
+            && !line.contains(&format!("<{}>", link.href))
+            && !line.contains(&link.href)
+        {
+            continue;
+        }
+
+        let trimmed = line.trim();
+        if bare_link_list_line(trimmed) {
+            return false;
+        }
+
+        let surrounding = line
+            .replace(&link.href, " ")
+            .replace(&link.text, " ")
+            .replace(['[', ']', '(', ')', '`'], " ");
+        if word_count(&surrounding) >= min_surrounding_words {
+            return true;
+        }
+    }
+    false
+}
+
+fn bare_link_list_line(line: &str) -> bool {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    let re = RE.get_or_init(|| {
+        Regex::new(r"^\s*(?:[-*+]|\d+\.)?\s*(?:\[[^\]]+\]\([^)]+\)\s*)+$").unwrap()
+    });
+    re.is_match(line)
+}
+
+fn word_count(text: &str) -> usize {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    let re = RE.get_or_init(|| Regex::new(r"[A-Za-z0-9]+").unwrap());
+    re.find_iter(text).count()
+}
+
+fn links_to_neighborhood_entrypoint(
+    concept: &Concept,
+    neighborhood: &str,
+    ctx: &LintContext,
+) -> bool {
+    concept.outgoing.iter().any(|link| {
+        let href = link.href.split('#').next().unwrap_or(link.href.as_str());
+        let normalized = if let Some(rest) = href.strip_prefix('/') {
+            rest
+        } else {
+            href
+        };
+        if normalized == format!("{neighborhood}/")
+            || normalized == format!("{neighborhood}/index.md")
+            || normalized == format!("{neighborhood}/index")
+        {
+            return true;
+        }
+
+        let Some(target) = link.target_id.as_deref() else {
+            return false;
+        };
+        let Some(target_neighborhood) = ctx.graph.neighborhoods.get(target) else {
+            return false;
+        };
+        if target_neighborhood != neighborhood {
+            return false;
+        }
+        target
+            .rsplit('/')
+            .next()
+            .is_some_and(|name| matches!(name, "overview" | "map" | "reference"))
+    })
+}
+
+fn concept_paths<'a>(ctx: &'a LintContext<'_>) -> HashMap<&'a str, &'a str> {
+    ctx.bundle
+        .concepts
+        .iter()
+        .map(|concept| (concept.id.as_str(), concept.path.as_str()))
+        .collect()
 }

@@ -9,7 +9,7 @@ use serde::Deserialize;
 use serde_json::Value;
 
 use crate::lint::canonical_rule_id;
-use crate::model::Severity;
+use crate::model::{Concept, Severity};
 
 /// Parse a severity word; `off`/`info`/`warn`/`error` (case-insensitive).
 pub fn parse_severity(s: &str) -> Option<Severity> {
@@ -66,8 +66,21 @@ struct RawConfig {
     #[allow(dead_code)]
     okf_version: Option<String>,
     rules: HashMap<String, RuleSetting>,
+    graph: Option<RawGraph>,
     overrides: Vec<RawOverride>,
     ci: Option<RawCi>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+struct RawGraph {
+    neighborhoods: HashMap<String, RawNeighborhood>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+struct RawNeighborhood {
+    paths: Vec<String>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -100,11 +113,18 @@ struct OverrideConfig {
 /// Fully resolved configuration ready for the lint engine.
 pub struct ResolvedConfig {
     rules: HashMap<String, RuleConfig>,
+    neighborhoods: HashMap<String, String>,
+    neighborhood_globs: Vec<NeighborhoodGlob>,
     overrides: Vec<OverrideConfig>,
     /// Severity at/above which `lint` should fail CI (default `error`).
     pub fail_on: Severity,
     /// Requested report format from `ci.report`, if any.
     pub report: Option<String>,
+}
+
+struct NeighborhoodGlob {
+    matcher: GlobMatcher,
+    name: String,
 }
 
 fn preset_yaml(name: &str) -> Option<&'static str> {
@@ -156,6 +176,25 @@ impl ResolvedConfig {
             rules.insert(id, RuleConfig { severity, options });
         }
 
+        let mut neighborhoods = HashMap::new();
+        let mut neighborhood_globs = Vec::new();
+        if let Some(graph) = raw.graph {
+            for (name, neighborhood) in graph.neighborhoods {
+                for path in neighborhood.paths {
+                    if is_glob_path(&path) {
+                        if let Ok(matcher) = Glob::new(&path).map(|glob| glob.compile_matcher()) {
+                            neighborhood_globs.push(NeighborhoodGlob {
+                                matcher,
+                                name: name.clone(),
+                            });
+                        }
+                    } else {
+                        neighborhoods.insert(normalize_concept_path(&path), name.clone());
+                    }
+                }
+            }
+        }
+
         let overrides = raw
             .overrides
             .iter()
@@ -180,9 +219,41 @@ impl ResolvedConfig {
 
         ResolvedConfig {
             rules,
+            neighborhoods,
+            neighborhood_globs,
             overrides,
             fail_on,
             report,
+        }
+    }
+
+    /// Infer a concept's graph-structure neighborhood.
+    ///
+    /// Precedence: explicit config path mapping, concept frontmatter
+    /// `neighborhood`, directory prefix, then a per-root-concept neighborhood.
+    pub fn neighborhood_for(&self, concept: &Concept) -> String {
+        if let Some(name) = self.neighborhoods.get(&concept.id) {
+            return name.clone();
+        }
+        for configured in &self.neighborhood_globs {
+            if configured.matcher.is_match(&concept.path)
+                || configured.matcher.is_match(&concept.id)
+            {
+                return configured.name.clone();
+            }
+        }
+        if let Some(name) = concept
+            .frontmatter
+            .get("neighborhood")
+            .and_then(|v| v.as_str())
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+        {
+            return name.to_string();
+        }
+        match concept.id.rfind('/') {
+            Some(i) => concept.id[..i].to_string(),
+            None => format!("(root)/{}", concept.id),
         }
     }
 
@@ -238,4 +309,15 @@ fn normalize_rule_id(id: &str) -> String {
         return id.to_string();
     }
     canonical_rule_id(id).unwrap_or(id).to_string()
+}
+
+fn normalize_concept_path(path: &str) -> String {
+    path.trim_start_matches('/')
+        .strip_suffix(".md")
+        .unwrap_or_else(|| path.trim_start_matches('/'))
+        .to_string()
+}
+
+fn is_glob_path(path: &str) -> bool {
+    path.contains('*') || path.contains('?') || path.contains('[') || path.contains('{')
 }

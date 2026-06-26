@@ -15,3 +15,5 @@ A degree-zero concept is unreachable by graph traversal and contributes nothing 
 - **Fixable:** no
 
 Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+
+Related local context: [rule taxonomy](/reference/rules/taxonomy.md).

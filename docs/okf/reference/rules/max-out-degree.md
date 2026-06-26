@@ -15,3 +15,5 @@ A concept linking to dozens of others is usually an undeclared hub; cap it with 
 - **Fixable:** no
 
 Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+
+Related local context: [rule taxonomy](/reference/rules/taxonomy.md).

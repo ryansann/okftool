@@ -15,3 +15,5 @@ A self-link adds a noise edge to the graph and conveys nothing.
 - **Fixable:** no
 
 Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+
+Related local context: [rule taxonomy](/reference/rules/taxonomy.md).

@@ -2,3 +2,12 @@
 # exemplary. `okftool lint docs/okf` picks this up automatically, and the dogfood
 # test (crates/okftool-cli/tests/cli.rs) enforces it in CI.
 extends: okf-strict
+graph:
+  neighborhoods:
+    architecture:
+      paths:
+        - architecture/*.md
+    reference:
+      paths:
+        - reference/*.md
+        - reference/rules/*.md

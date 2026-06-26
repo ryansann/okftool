@@ -15,3 +15,5 @@ Descriptions in an index are the snippets a reader scans; entries without one ma
 - **Fixable:** no
 
 Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+
+Related local context: [rule taxonomy](/reference/rules/taxonomy.md).

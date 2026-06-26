@@ -12,6 +12,14 @@ rules:
   linking/no-self-link: error
   topology/no-orphan-concepts: error
   topology/no-unindexed-concepts: error
+  graph-structure/no-excessive-bridging: error
+  graph-structure/bridging-ratio: error
+  graph-structure/no-leaf-bridge-fanout: error
+  graph-structure/require-bridge-prose: error
+  graph-structure/prefer-neighborhood-index-link: error
+  graph-structure/no-complete-neighborhood-clique: error
+  graph-structure/min-local-cohesion: error
+  graph-structure/declare-hubs: error
   body/structural-body: error
   body/body-not-empty: error
   index-log/index-entry-has-description: warn

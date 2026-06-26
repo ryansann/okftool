@@ -59,8 +59,8 @@ GitHub PR annotations.
 
 ## Rules & configuration
 
-okftool ships **18 lint rules** across six categories (frontmatter,
-type-vocabulary, linking, topology, body, index/log). `.okftool.yaml` selects a
+okftool ships **26 lint rules** across seven categories (frontmatter,
+type-vocabulary, linking, topology, graph-structure, body, index/log). `.okftool.yaml` selects a
 profile with `extends`, sets per-rule severity/options, scopes rules with glob
 `overrides`, and gates CI with `ci.fail-on`. Concepts can opt out inline via an
 `okf-lint-disable` frontmatter list.
@@ -71,6 +71,10 @@ extends: okf-recommended           # or okf-strict / okf-minimal
 rules:
   linking/no-dangling-links: warn          # off | info | warn | error
   topology/max-out-degree: { severity: warn, options: { max: 20 } }
+graph:
+  neighborhoods:
+    graph-authoring:
+      paths: [principles/local-neighborhoods.md, rules/graph-coherence.md]
 ci:
   fail-on: error
 ```

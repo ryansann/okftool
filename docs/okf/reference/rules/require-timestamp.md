@@ -15,3 +15,5 @@ A timestamp enables sort-by-recency and audit of when knowledge last changed.
 - **Fixable:** no
 
 Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+
+Related local context: [rule taxonomy](/reference/rules/taxonomy.md).

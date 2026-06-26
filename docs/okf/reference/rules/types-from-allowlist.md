@@ -15,3 +15,5 @@ Off until you declare a vocabulary via the allow option; once you do, any type o
 - **Fixable:** no
 
 Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+
+Related local context: [rule taxonomy](/reference/rules/taxonomy.md).

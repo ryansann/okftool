@@ -15,3 +15,5 @@ Bundle-absolute links survive moving or renaming the source file; relative links
 - **Fixable:** yes
 
 Configured in [.okftool.yaml](/reference/configuration.md); see [validation](/reference/validation.md) for the spec layer.
+
+Related local context: [rule taxonomy](/reference/rules/taxonomy.md).

@@ -211,6 +211,8 @@ impl GraphEdge {
 pub struct Graph {
     pub out_degree: HashMap<String, usize>,
     pub in_degree: HashMap<String, usize>,
+    pub local_out_degree: HashMap<String, usize>,
+    pub local_in_degree: HashMap<String, usize>,
     pub neighborhoods: HashMap<String, String>,
     pub edges: Vec<GraphEdge>,
     pub outgoing_edges: HashMap<String, Vec<GraphEdge>>,
@@ -223,6 +225,8 @@ impl Graph {
         let mut out_degree: HashMap<String, usize> =
             bundle.concepts.iter().map(|c| (c.id.clone(), 0)).collect();
         let mut in_degree: HashMap<String, usize> = out_degree.clone();
+        let mut local_out_degree: HashMap<String, usize> = out_degree.clone();
+        let mut local_in_degree: HashMap<String, usize> = out_degree.clone();
         let mut neighborhoods: HashMap<String, String> = HashMap::new();
         let mut neighborhood_members: HashMap<String, Vec<String>> = HashMap::new();
         for concept in &bundle.concepts {
@@ -267,6 +271,10 @@ impl Graph {
                             .entry(concept.id.clone())
                             .or_default()
                             .push(edge);
+                        if neighborhoods.get(&concept.id) == neighborhoods.get(target) {
+                            *local_out_degree.get_mut(&concept.id).unwrap() += 1;
+                            *local_in_degree.get_mut(target).unwrap() += 1;
+                        }
                     }
                 }
             }
@@ -274,6 +282,8 @@ impl Graph {
         Graph {
             out_degree,
             in_degree,
+            local_out_degree,
+            local_in_degree,
             neighborhoods,
             edges,
             outgoing_edges,

@@ -18,6 +18,8 @@ rules:
   graph-structure/prefer-neighborhood-index-link: "off"
   graph-structure/no-complete-neighborhood-clique: "off"
   graph-structure/min-local-cohesion: "off"
+  graph-structure/no-alienated-concepts: "off"
+  graph-structure/no-noisy-edges: "off"
   graph-structure/declare-hubs: "off"
   body/structural-body: "off"
   body/body-not-empty: "off"

@@ -3,6 +3,8 @@ type: Concept
 title: Validation
 description: The spec (section 9) conformance layer — non-disableable errors.
 timestamp: 2026-06-23
+tags: [hub, reference]
+hub: true
 ---
 
 # Validation

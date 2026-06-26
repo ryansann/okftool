@@ -280,6 +280,148 @@ fn graph_structure_requires_local_cohesion_for_non_hubs() {
 }
 
 #[test]
+fn graph_structure_flags_alienated_concepts_that_are_not_orphans() {
+    let bundle = bundle_with_owned(vec![
+        (
+            "a/local.md",
+            clean_doc("# Local\n- This local concept points to [peer](/a/peer.md).\n"),
+        ),
+        ("a/peer.md", clean_doc("# Peer\n- [local](/a/local.md)\n")),
+        (
+            "a/alien.md",
+            clean_doc("# Alien\n- This appendix points outward to [external area](/b/target.md) because related implementation lives there.\n"),
+        ),
+        (
+            "b/target.md",
+            clean_doc("# Target\n- [alien](/a/alien.md)\n"),
+        ),
+    ]);
+    let cfg = ResolvedConfig::from_yaml(
+        "rules:\n  graph-structure/require-bridge-prose: \"off\"\n  graph-structure/no-leaf-bridge-fanout: \"off\"\n  graph-structure/bridging-ratio: \"off\"\n",
+    )
+    .unwrap();
+    let diags = lint(&bundle, &cfg);
+    assert!(
+        diags.iter().any(|d| {
+            d.file == "a/alien.md" && d.code == "graph-structure/no-alienated-concepts"
+        }),
+        "{diags:#?}"
+    );
+    assert!(
+        !diags
+            .iter()
+            .any(|d| { d.file == "a/alien.md" && d.code == "topology/no-orphan-concepts" }),
+        "{diags:#?}"
+    );
+}
+
+#[test]
+fn graph_structure_does_not_flag_locally_attached_concepts_as_alienated() {
+    let bundle = bundle_with_owned(vec![
+        (
+            "a/source.md",
+            clean_doc("# Source\n- [local](/a/local.md)\n"),
+        ),
+        (
+            "a/local.md",
+            clean_doc("# Local\n- [source](/a/source.md)\n"),
+        ),
+    ]);
+    let diags = lint(&bundle, &ResolvedConfig::recommended());
+    assert!(
+        !diags
+            .iter()
+            .any(|d| d.code == "graph-structure/no-alienated-concepts"),
+        "{diags:#?}"
+    );
+}
+
+#[test]
+fn graph_structure_flags_noisy_total_degree_on_non_hubs() {
+    let mut body = "# Source\n".to_string();
+    let mut files: Vec<(String, String)> = Vec::new();
+    for i in 1..=4 {
+        body.push_str(&format!("- [target {i}](/a/target{i}.md)\n"));
+        files.push((
+            format!("a/target{i}.md"),
+            clean_doc(&format!("# Target {i}\n- [source](/a/source.md)\n")),
+        ));
+    }
+    files.push(("a/source.md".to_string(), clean_doc(&body)));
+    let bundle = bundle_with(
+        files
+            .iter()
+            .map(|(path, content)| (path.as_str(), content.as_str()))
+            .collect(),
+    );
+    let cfg = ResolvedConfig::from_yaml(
+        "rules:\n  graph-structure/no-noisy-edges:\n    options:\n      maxTotalDegree: 7\n      maxOutDegree: 10\n      maxInDegree: 10\n",
+    )
+    .unwrap();
+    let diags = lint(&bundle, &cfg);
+    assert!(
+        diags
+            .iter()
+            .any(|d| { d.file == "a/source.md" && d.code == "graph-structure/no-noisy-edges" }),
+        "{diags:#?}"
+    );
+}
+
+#[test]
+fn graph_structure_flags_noisy_in_degree_on_non_hubs() {
+    let mut files: Vec<(String, String)> = vec![(
+        "a/target.md".to_string(),
+        clean_doc("# Target\n- [local](/a/local.md)\n"),
+    )];
+    files.push((
+        "a/local.md".to_string(),
+        clean_doc("# Local\n- [target](/a/target.md)\n"),
+    ));
+    for i in 1..=4 {
+        files.push((
+            format!("a/source{i}.md"),
+            clean_doc(&format!("# Source {i}\n- [target](/a/target.md)\n")),
+        ));
+    }
+    let bundle = bundle_with(
+        files
+            .iter()
+            .map(|(path, content)| (path.as_str(), content.as_str()))
+            .collect(),
+    );
+    let cfg = ResolvedConfig::from_yaml(
+        "rules:\n  graph-structure/no-noisy-edges:\n    options:\n      maxTotalDegree: 20\n      maxOutDegree: 20\n      maxInDegree: 3\n",
+    )
+    .unwrap();
+    let diags = lint(&bundle, &cfg);
+    assert!(
+        diags
+            .iter()
+            .any(|d| { d.file == "a/target.md" && d.code == "graph-structure/no-noisy-edges" }),
+        "{diags:#?}"
+    );
+}
+
+#[test]
+fn graph_structure_does_not_flag_selective_local_links_as_noisy() {
+    let bundle = bundle_with_owned(vec![
+        (
+            "a/source.md",
+            clean_doc("# Source\n- [one](/a/one.md)\n- [two](/a/two.md)\n"),
+        ),
+        ("a/one.md", clean_doc("# One\n- [source](/a/source.md)\n")),
+        ("a/two.md", clean_doc("# Two\n- [source](/a/source.md)\n")),
+    ]);
+    let diags = lint(&bundle, &ResolvedConfig::recommended());
+    assert!(
+        !diags
+            .iter()
+            .any(|d| d.code == "graph-structure/no-noisy-edges"),
+        "{diags:#?}"
+    );
+}
+
+#[test]
 fn graph_structure_requires_prose_around_bridge_links() {
     let bundle = bundle_with_owned(vec![
         ("a/source.md", clean_doc("# Source\n- [b](/b/one.md)\n")),
@@ -461,6 +603,14 @@ fn graph_structure_hub_true_exempts_leaf_shape_rules() {
     );
     assert!(
         !source_codes.contains(&"graph-structure/min-local-cohesion"),
+        "{source_codes:?}"
+    );
+    assert!(
+        !source_codes.contains(&"graph-structure/no-alienated-concepts"),
+        "{source_codes:?}"
+    );
+    assert!(
+        !source_codes.contains(&"graph-structure/no-noisy-edges"),
         "{source_codes:?}"
     );
 }

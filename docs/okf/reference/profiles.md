@@ -50,6 +50,8 @@ rules:
   graph-structure/prefer-neighborhood-index-link: error
   graph-structure/no-complete-neighborhood-clique: error
   graph-structure/min-local-cohesion: error
+  graph-structure/no-alienated-concepts: error
+  graph-structure/no-noisy-edges: error
   graph-structure/declare-hubs: error
   body/structural-body: error
   body/body-not-empty: error
@@ -84,6 +86,8 @@ rules:
   graph-structure/prefer-neighborhood-index-link: "off"
   graph-structure/no-complete-neighborhood-clique: "off"
   graph-structure/min-local-cohesion: "off"
+  graph-structure/no-alienated-concepts: "off"
+  graph-structure/no-noisy-edges: "off"
   graph-structure/declare-hubs: "off"
   body/structural-body: "off"
   body/body-not-empty: "off"

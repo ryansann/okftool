@@ -59,7 +59,7 @@ GitHub PR annotations.
 
 ## Rules & configuration
 
-okftool ships **26 lint rules** across seven categories (frontmatter,
+okftool ships **28 lint rules** across seven categories (frontmatter,
 type-vocabulary, linking, topology, graph-structure, body, index/log). `.okftool.yaml` selects a
 profile with `extends`, sets per-rule severity/options, scopes rules with glob
 `overrides`, and gates CI with `ci.fail-on`. Concepts can opt out inline via an

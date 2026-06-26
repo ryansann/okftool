@@ -6,6 +6,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-06-25
+
+### Fixed
+
+- Made `okftool-wasm` package metadata explicit so `wasm-pack` can parse the
+  manifest during npm package builds.
+
 ## [0.2.0] - 2026-06-25
 
 ### Added
@@ -63,7 +70,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Self-documenting OKF bundle at `docs/okf/`, linted under the strict profile in
   CI (dogfood).
 
-[Unreleased]: https://github.com/ryansann/okftool/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/ryansann/okftool/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/ryansann/okftool/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/ryansann/okftool/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/ryansann/okftool/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/ryansann/okftool/compare/v0.1.3...v0.1.4

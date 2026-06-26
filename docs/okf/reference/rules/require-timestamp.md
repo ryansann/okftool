@@ -1,12 +1,12 @@
 ---
 type: LintRule
-title: require-timestamp
+title: frontmatter/require-timestamp
 description: Flags a concept with no timestamp.
 timestamp: 2026-06-23
 tags: [lint, frontmatter]
 ---
 
-# require-timestamp
+# frontmatter/require-timestamp
 
 A timestamp enables sort-by-recency and audit of when knowledge last changed.
 

@@ -13,14 +13,14 @@ validation) and nothing else — they double as worked examples. Asserted by
 | `conformant` | — | clean baseline; zero diagnostics |
 | `missing-type` | `missing-type` (spec) | non-conformant |
 | `missing-frontmatter` | `missing-frontmatter` (spec) | non-conformant |
-| `orphan-concept` | `no-orphan-concepts` | |
-| `relative-links` | `prefer-absolute-links` | |
-| `type-casing` | `consistent-type-casing` | `Widget` vs `widget` |
-| `sparse-frontmatter` | `require-description`, `require-timestamp` | |
-| `bad-timestamp` | `timestamp-iso8601` | |
-| `prose-wall` | `structural-body` | |
-| `dangling-link` | `no-dangling-links` | needs the rule enabled (off by default) |
-| `hub-overflow` | `max-out-degree` | needs a low `max` option |
+| `orphan-concept` | `topology/no-orphan-concepts` | |
+| `relative-links` | `linking/prefer-absolute-links` | |
+| `type-casing` | `type-vocabulary/consistent-type-casing` | `Widget` vs `widget` |
+| `sparse-frontmatter` | `frontmatter/require-description`, `frontmatter/require-timestamp` | |
+| `bad-timestamp` | `frontmatter/timestamp-iso8601` | |
+| `prose-wall` | `body/structural-body` | |
+| `dangling-link` | `linking/no-dangling-links` | needs the rule enabled (off by default) |
+| `hub-overflow` | `topology/max-out-degree` | needs a low `max` option |
 | `all-rules` | several | kitchen-sink; asserted by `tests/golden.rs` |
 
 ## `.vendor/` (gitignored)

@@ -314,7 +314,7 @@ dependencies = [
 
 [[package]]
 name = "okftool-cli"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "clap",
  "flate2",
@@ -325,7 +325,7 @@ dependencies = [
 
 [[package]]
 name = "okftool-core"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "globset",
  "regex",
@@ -336,7 +336,7 @@ dependencies = [
 
 [[package]]
 name = "okftool-wasm"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "console_error_panic_hook",
  "okftool-core",

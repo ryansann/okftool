@@ -2,7 +2,7 @@
 //! a Node/edge API, or the browser. JS passes file contents in (wasm has no
 //! filesystem); okftool-core does the rest.
 
-use okftool_core::{build_bundle, check, rule_metas, ResolvedConfig};
+use okftool_core::{build_bundle, check, rule_descriptors, ResolvedConfig};
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 
@@ -54,24 +54,11 @@ pub fn lint(files: JsValue, config_yaml: Option<String>) -> Result<JsValue, JsVa
     to_js(&bundle)
 }
 
-/// The rule manifest: `[{ id, category, summary, rationale, defaultSeverity, fixable }]`.
+/// The rule manifest: rich descriptors for every lint rule.
 /// Powers an in-app "explain" / rule browser.
 #[wasm_bindgen]
 pub fn rules() -> Result<JsValue, JsValue> {
-    let metas: Vec<_> = rule_metas()
-        .iter()
-        .map(|m| {
-            serde_json::json!({
-                "id": m.id,
-                "category": m.category.as_str(),
-                "summary": m.summary,
-                "rationale": m.rationale,
-                "defaultSeverity": m.default_severity.label(),
-                "fixable": m.fixable,
-            })
-        })
-        .collect();
-    to_js(&metas)
+    to_js(&rule_descriptors())
 }
 
 /// The OKF spec version this build targets.

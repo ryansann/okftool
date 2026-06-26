@@ -1,12 +1,12 @@
 ---
 type: LintRule
-title: structural-body
+title: body/structural-body
 description: Flags a body with no heading, list, or table.
 timestamp: 2026-06-23
 tags: [lint, body]
 ---
 
-# structural-body
+# body/structural-body
 
 Headings, lists, and tables retrieve far better than a wall of prose and give agents anchors to cite.
 

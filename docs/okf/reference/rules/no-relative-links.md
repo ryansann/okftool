@@ -1,12 +1,12 @@
 ---
 type: LintRule
-title: no-relative-links
+title: linking/no-relative-links
 description: Any relative internal link (stricter than prefer-absolute-links).
 timestamp: 2026-06-23
 tags: [lint, linking]
 ---
 
-# no-relative-links
+# linking/no-relative-links
 
 A blanket ban on relative links for bundles that want every cross-link to survive refactors.
 

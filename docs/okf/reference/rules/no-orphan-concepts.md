@@ -1,12 +1,12 @@
 ---
 type: LintRule
-title: no-orphan-concepts
+title: topology/no-orphan-concepts
 description: Flags a concept with no incoming or outgoing links.
 timestamp: 2026-06-23
 tags: [lint, topology]
 ---
 
-# no-orphan-concepts
+# topology/no-orphan-concepts
 
 A degree-zero concept is unreachable by graph traversal and contributes nothing to the knowledge graph.
 

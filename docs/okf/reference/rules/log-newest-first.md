@@ -1,12 +1,12 @@
 ---
 type: LintRule
-title: log-newest-first
+title: index-log/log-newest-first
 description: log.md entries are not in newest-first order.
 timestamp: 2026-06-23
 tags: [lint, index-log]
 ---
 
-# log-newest-first
+# index-log/log-newest-first
 
 A change log should read top-down newest-first; out-of-order dates suggest an append in the wrong place.
 

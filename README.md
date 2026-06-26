@@ -69,8 +69,8 @@ profile with `extends`, sets per-rule severity/options, scopes rules with glob
 # .okftool.yaml
 extends: okf-recommended           # or okf-strict / okf-minimal
 rules:
-  no-dangling-links: warn          # off | info | warn | error
-  max-out-degree: { severity: warn, options: { max: 20 } }
+  linking/no-dangling-links: warn          # off | info | warn | error
+  topology/max-out-degree: { severity: warn, options: { max: 20 } }
 ci:
   fail-on: error
 ```

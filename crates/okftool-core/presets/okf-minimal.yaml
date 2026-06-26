@@ -2,18 +2,18 @@
 # the cheap, high-signal format check. (Spec conformance is always enforced by
 # `validate`, independent of any profile.)
 rules:
-  require-description: "off"
-  require-timestamp: "off"
-  no-empty-frontmatter-values: "off"
-  consistent-type-casing: "off"
-  no-singleton-type: "off"
-  prefer-absolute-links: "off"
-  no-orphan-concepts: "off"
-  no-unindexed-concepts: "off"
-  max-out-degree: "off"
-  structural-body: "off"
-  body-not-empty: "off"
-  no-self-link: "off"
-  index-entry-has-description: "off"
-  log-newest-first: "off"
-  timestamp-iso8601: warn
+  frontmatter/require-description: "off"
+  frontmatter/require-timestamp: "off"
+  frontmatter/no-empty-frontmatter-values: "off"
+  type-vocabulary/consistent-type-casing: "off"
+  type-vocabulary/no-singleton-type: "off"
+  linking/prefer-absolute-links: "off"
+  topology/no-orphan-concepts: "off"
+  topology/no-unindexed-concepts: "off"
+  topology/max-out-degree: "off"
+  body/structural-body: "off"
+  body/body-not-empty: "off"
+  linking/no-self-link: "off"
+  index-log/index-entry-has-description: "off"
+  index-log/log-newest-first: "off"
+  frontmatter/timestamp-iso8601: warn

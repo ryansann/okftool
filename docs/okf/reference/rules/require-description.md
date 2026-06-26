@@ -1,12 +1,12 @@
 ---
 type: LintRule
-title: require-description
+title: frontmatter/require-description
 description: Flags a concept with no description.
 timestamp: 2026-06-23
 tags: [lint, frontmatter]
 ---
 
-# require-description
+# frontmatter/require-description
 
 The description is the unit of progressive disclosure — it is what index snippets and search results show.
 

@@ -1,12 +1,12 @@
 ---
 type: LintRule
-title: no-singleton-type
+title: type-vocabulary/no-singleton-type
 description: A type is used by exactly one concept.
 timestamp: 2026-06-23
 tags: [lint, type-vocabulary]
 ---
 
-# no-singleton-type
+# type-vocabulary/no-singleton-type
 
 A type with a single member is often a typo or over-specialization that fragments the vocabulary.
 

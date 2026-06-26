@@ -105,7 +105,7 @@ fn validate_sample_corpus_is_conformant() {
 
 #[test]
 fn lint_sample_corpus_trips_on_error_rule() {
-    // The corpus contains a bad timestamp (timestamp-iso8601 = error), so with
+    // The corpus contains a bad timestamp (frontmatter/timestamp-iso8601 = error), so with
     // the default fail-on=error the lint must exit non-zero — even though the
     // bundle is spec-conformant.
     let out = bin().arg("lint").arg(corpus()).output().unwrap();
@@ -147,11 +147,18 @@ fn validate_non_conformant_exits_nonzero() {
 fn rules_and_explain_work() {
     let rules = bin().arg("rules").output().unwrap();
     assert!(rules.status.success());
-    assert!(String::from_utf8_lossy(&rules.stdout).contains("no-orphan-concepts"));
+    assert!(String::from_utf8_lossy(&rules.stdout).contains("topology/no-orphan-concepts"));
 
-    let explain = bin().args(["explain", "max-out-degree"]).output().unwrap();
+    let explain = bin()
+        .args(["explain", "topology/max-out-degree"])
+        .output()
+        .unwrap();
     assert!(explain.status.success());
     assert!(String::from_utf8_lossy(&explain.stdout).contains("hairball"));
+
+    let alias = bin().args(["explain", "max-out-degree"]).output().unwrap();
+    assert!(alias.status.success());
+    assert!(String::from_utf8_lossy(&alias.stdout).contains("topology/max-out-degree"));
 
     let unknown = bin().args(["explain", "nope"]).output().unwrap();
     assert!(!unknown.status.success());

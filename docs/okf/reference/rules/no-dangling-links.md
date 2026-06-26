@@ -1,12 +1,12 @@
 ---
 type: LintRule
-title: no-dangling-links
+title: linking/no-dangling-links
 description: Flags a link that points at a concept that does not exist.
 timestamp: 2026-06-23
 tags: [lint, linking]
 ---
 
-# no-dangling-links
+# linking/no-dangling-links
 
 Broken links are explicitly tolerated by the spec (forward stubs are legitimate), so this rule is off by default — enable it for bundles that should be self-contained.
 

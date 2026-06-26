@@ -9,6 +9,7 @@ mod rules;
 
 use std::collections::{HashMap, HashSet};
 
+use serde::Serialize;
 use serde_json::Value;
 
 use crate::config::ResolvedConfig;
@@ -21,6 +22,7 @@ pub enum Category {
     TypeVocabulary,
     Linking,
     Topology,
+    GraphStructure,
     Body,
     IndexLog,
 }
@@ -32,10 +34,45 @@ impl Category {
             Category::TypeVocabulary => "type-vocabulary",
             Category::Linking => "linking",
             Category::Topology => "topology",
+            Category::GraphStructure => "graph-structure",
             Category::Body => "body",
             Category::IndexLog => "index-log",
         }
     }
+
+    pub fn name(self) -> &'static str {
+        match self {
+            Category::Frontmatter => "Frontmatter",
+            Category::TypeVocabulary => "Type vocabulary",
+            Category::Linking => "Linking",
+            Category::Topology => "Topology",
+            Category::GraphStructure => "Graph structure",
+            Category::Body => "Body",
+            Category::IndexLog => "Index & log",
+        }
+    }
+
+    pub fn description(self) -> &'static str {
+        match self {
+            Category::Frontmatter => "Rules about concept metadata quality.",
+            Category::TypeVocabulary => "Rules about keeping the concept type vocabulary coherent.",
+            Category::Linking => "Rules about individual markdown links and link targets.",
+            Category::Topology => "Rules about basic graph health and reachability.",
+            Category::GraphStructure => {
+                "Rules about coherent local graph shape and cross-neighborhood structure."
+            }
+            Category::Body => "Rules about concept body structure and retrieval quality.",
+            Category::IndexLog => "Rules about reserved index.md and log.md files.",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CategoryDescriptor {
+    pub id: &'static str,
+    pub name: &'static str,
+    pub description: &'static str,
 }
 
 /// Static description of a rule — the manifest entry.
@@ -46,6 +83,80 @@ pub struct RuleMeta {
     pub rationale: &'static str,
     pub default_severity: Severity,
     pub fixable: bool,
+}
+
+impl RuleMeta {
+    pub fn slug(&self) -> &'static str {
+        self.id.rsplit_once('/').map_or(self.id, |(_, slug)| slug)
+    }
+
+    pub fn aliases(&self) -> Vec<&'static str> {
+        vec![self.slug()]
+    }
+
+    pub fn name(&self) -> String {
+        self.slug()
+            .split('-')
+            .map(|part| {
+                let mut chars = part.chars();
+                match chars.next() {
+                    Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                    None => String::new(),
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+    }
+
+    pub fn help(&self) -> &'static str {
+        self.rationale
+    }
+
+    pub fn category_descriptor(&self) -> CategoryDescriptor {
+        CategoryDescriptor {
+            id: self.category.as_str(),
+            name: self.category.name(),
+            description: self.category.description(),
+        }
+    }
+
+    pub fn docs_path(&self) -> String {
+        format!("docs/okf/reference/rules/{}.md", self.slug())
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RuleDescriptor {
+    pub id: &'static str,
+    pub slug: &'static str,
+    pub name: String,
+    pub aliases: Vec<&'static str>,
+    pub category: CategoryDescriptor,
+    pub summary: &'static str,
+    pub rationale: &'static str,
+    pub help: &'static str,
+    pub default_severity: &'static str,
+    pub fixable: bool,
+    pub docs_path: String,
+}
+
+impl From<RuleMeta> for RuleDescriptor {
+    fn from(meta: RuleMeta) -> Self {
+        RuleDescriptor {
+            id: meta.id,
+            slug: meta.slug(),
+            name: meta.name(),
+            aliases: meta.aliases(),
+            category: meta.category_descriptor(),
+            summary: meta.summary,
+            rationale: meta.rationale,
+            help: meta.help(),
+            default_severity: meta.default_severity.label(),
+            fixable: meta.fixable,
+            docs_path: meta.docs_path(),
+        }
+    }
 }
 
 /// A rule finding before severity resolution.
@@ -135,6 +246,22 @@ pub fn rule_metas() -> Vec<RuleMeta> {
     all_rules().iter().map(|r| r.meta()).collect()
 }
 
+pub fn rule_descriptors() -> Vec<RuleDescriptor> {
+    rule_metas().into_iter().map(RuleDescriptor::from).collect()
+}
+
+pub fn canonical_rule_id(id: &str) -> Option<&'static str> {
+    rule_metas()
+        .into_iter()
+        .find_map(|m| (m.id == id || m.slug() == id || m.aliases().contains(&id)).then_some(m.id))
+}
+
+pub fn rule_meta(id: &str) -> Option<RuleMeta> {
+    rule_metas()
+        .into_iter()
+        .find(|m| m.id == id || m.slug() == id || m.aliases().contains(&id))
+}
+
 /// Inline `okf-lint-disable` rule ids per concept path.
 fn inline_disables(bundle: &Bundle) -> HashMap<String, HashSet<String>> {
     let mut map = HashMap::new();
@@ -142,9 +269,12 @@ fn inline_disables(bundle: &Bundle) -> HashMap<String, HashSet<String>> {
         let set: HashSet<String> = match concept.frontmatter.get("okf-lint-disable") {
             Some(Value::Array(a)) => a
                 .iter()
-                .filter_map(|v| v.as_str().map(String::from))
+                .filter_map(|v| v.as_str())
+                .map(|id| canonical_rule_id(id).unwrap_or(id).to_string())
                 .collect(),
-            Some(Value::String(s)) => std::iter::once(s.clone()).collect(),
+            Some(Value::String(s)) => {
+                std::iter::once(canonical_rule_id(s).unwrap_or(s).to_string()).collect()
+            }
             _ => continue,
         };
         if !set.is_empty() {
@@ -181,9 +311,14 @@ pub fn lint(bundle: &Bundle, config: &ResolvedConfig) -> Vec<Diagnostic> {
             out.push(Diagnostic {
                 file: finding.file,
                 code: meta.id.to_string(),
+                rule_name: Some(meta.name()),
+                category: Some(meta.category.as_str().to_string()),
+                category_name: Some(meta.category.name().to_string()),
                 severity,
                 message: finding.message,
                 spec: false,
+                rationale: Some(meta.rationale.to_string()),
+                help: Some(meta.help().to_string()),
                 fix: finding.fix,
             });
         }

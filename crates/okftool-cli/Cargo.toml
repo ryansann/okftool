@@ -16,7 +16,7 @@ name = "okftool"
 path = "src/main.rs"
 
 [dependencies]
-okftool-core = { path = "../okftool-core", version = "0.2.1" }
+okftool-core = { path = "../okftool-core", version = "0.2.2" }
 serde_json = { workspace = true }
 clap = { version = "4", features = ["derive"] }
 tar = "0.4"

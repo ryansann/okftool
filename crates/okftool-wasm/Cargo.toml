@@ -14,7 +14,7 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-okftool-core = { path = "../okftool-core", version = "0.2.1" }
+okftool-core = { path = "../okftool-core", version = "0.2.2" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 wasm-bindgen = "0.2"

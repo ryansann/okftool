@@ -3,6 +3,7 @@ name: release
 # Semver tags drive releases. The release process is:
 #   1. bump the workspace version in Cargo.toml to X.Y.Z
 #   2. commit, then `git tag vX.Y.Z && git push --tags`
+#   3. optional publishing gates: PUBLISH_NPM=true, PUBLISH_CRATES=true
 # The `guard` job enforces that the tag matches the crate version.
 on:
   push:
@@ -64,6 +65,36 @@ jobs:
           tar: unix
           zip: windows
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  crates:
+    name: publish crates.io packages
+    needs: guard
+    # Opt in by setting the repo variable PUBLISH_CRATES=true and the
+    # CARGO_REGISTRY_TOKEN secret.
+    if: ${{ vars.PUBLISH_CRATES == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Publish okftool-core
+        run: cargo publish -p okftool-core
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Wait for okftool-core index propagation
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          for i in {1..20}; do
+            if cargo search okftool-core --limit 1 | grep -q "^okftool-core = \"$version\""; then
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::okftool-core $version did not appear in the crates.io index" >&2
+          exit 1
+      - name: Publish okftool-cli
+        run: cargo publish -p okftool-cli
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   bundle:
     name: docs OKF bundle artifact

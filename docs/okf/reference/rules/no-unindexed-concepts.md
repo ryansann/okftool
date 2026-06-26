@@ -1,12 +1,12 @@
 ---
 type: LintRule
-title: no-unindexed-concepts
+title: topology/no-unindexed-concepts
 description: A concept is not referenced by any index.md.
 timestamp: 2026-06-23
 tags: [lint, topology]
 ---
 
-# no-unindexed-concepts
+# topology/no-unindexed-concepts
 
 A concept absent from every index is unreachable via progressive disclosure — a reader browsing the bundle will never find it.
 

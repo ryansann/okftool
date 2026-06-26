@@ -5,7 +5,10 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand, ValueEnum};
-use okftool_core::{build_bundle, check, rule_metas, Bundle, Diagnostic, ResolvedConfig, Severity};
+use okftool_core::{
+    build_bundle, check, rule_descriptors, rule_meta, rule_metas, Bundle, Diagnostic,
+    ResolvedConfig, Severity,
+};
 
 #[derive(Parser)]
 #[command(
@@ -39,7 +42,7 @@ enum Command {
     },
     /// Explain a lint rule: its rationale, category, default severity.
     Explain {
-        /// Rule id, e.g. `no-orphan-concepts`.
+        /// Rule id, e.g. `topology/no-orphan-concepts` (old flat aliases also work).
         rule: String,
     },
     /// List all available lint rules.
@@ -198,10 +201,15 @@ fn sarif(bundle: &Bundle) -> String {
         .map(|m| {
             serde_json::json!({
                 "id": m.id,
-                "name": m.id,
+                "name": m.name(),
                 "shortDescription": { "text": m.summary },
                 "fullDescription": { "text": m.rationale },
-                "properties": { "category": m.category.as_str() }
+                "properties": {
+                    "category": m.category.as_str(),
+                    "categoryName": m.category.name(),
+                    "aliases": m.aliases(),
+                    "docsPath": m.docs_path()
+                }
             })
         })
         .collect();
@@ -239,9 +247,13 @@ fn sarif(bundle: &Bundle) -> String {
 }
 
 fn explain(rule: &str) -> ExitCode {
-    match rule_metas().into_iter().find(|m| m.id == rule) {
+    match rule_meta(rule) {
         Some(m) => {
             println!("{}  [{}]", m.id, m.category.as_str());
+            let aliases = m.aliases();
+            if !aliases.is_empty() {
+                println!("  aliases: {}", aliases.join(", "));
+            }
             println!(
                 "  default: {}{}",
                 m.default_severity.label(),
@@ -249,6 +261,7 @@ fn explain(rule: &str) -> ExitCode {
             );
             println!("  {}", m.summary);
             println!("\n  {}", m.rationale);
+            println!("\n  docs: {}", m.docs_path());
             ExitCode::SUCCESS
         }
         None => {
@@ -259,26 +272,18 @@ fn explain(rule: &str) -> ExitCode {
 }
 
 fn list_rules() -> ExitCode {
-    let mut metas = rule_metas();
-    metas.sort_by(|a, b| {
-        a.category
-            .as_str()
-            .cmp(b.category.as_str())
-            .then(a.id.cmp(b.id))
-    });
+    let mut rules = rule_descriptors();
+    rules.sort_by(|a, b| a.category.id.cmp(b.category.id).then(a.id.cmp(b.id)));
     let mut current = "";
-    for m in &metas {
-        if m.category.as_str() != current {
-            current = m.category.as_str();
-            println!("\n{current}:");
+    for m in &rules {
+        if m.category.id != current {
+            current = m.category.id;
+            println!("\n{}:", m.category.name);
         }
         let fixable = if m.fixable { " (fixable)" } else { "" };
         println!(
             "  {:<24} {:<6} {}{}",
-            m.id,
-            m.default_severity.label(),
-            m.summary,
-            fixable
+            m.id, m.default_severity, m.summary, fixable
         );
     }
     ExitCode::SUCCESS

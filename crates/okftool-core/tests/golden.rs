@@ -49,16 +49,16 @@ fn recommended_profile_triggers_exact_rule_set() {
     let diags = lint(&bundle, &ResolvedConfig::recommended());
     let got: BTreeSet<&str> = diags.iter().map(|d| d.code.as_str()).collect();
     let want: BTreeSet<&str> = [
-        "consistent-type-casing",
-        "index-entry-has-description",
-        "no-orphan-concepts",
-        "no-singleton-type",
-        "no-unindexed-concepts",
-        "prefer-absolute-links",
-        "require-description",
-        "require-timestamp",
-        "structural-body",
-        "timestamp-iso8601",
+        "type-vocabulary/consistent-type-casing",
+        "index-log/index-entry-has-description",
+        "topology/no-orphan-concepts",
+        "type-vocabulary/no-singleton-type",
+        "topology/no-unindexed-concepts",
+        "linking/prefer-absolute-links",
+        "frontmatter/require-description",
+        "frontmatter/require-timestamp",
+        "body/structural-body",
+        "frontmatter/timestamp-iso8601",
     ]
     .into_iter()
     .collect();
@@ -67,10 +67,10 @@ fn recommended_profile_triggers_exact_rule_set() {
     // The error-level rule is present and actually an error.
     assert!(diags
         .iter()
-        .any(|d| d.code == "timestamp-iso8601" && d.severity == Severity::Error));
+        .any(|d| d.code == "frontmatter/timestamp-iso8601" && d.severity == Severity::Error));
     // Off-by-default / unmet rules stay absent.
-    assert!(!got.contains("no-dangling-links"));
-    assert!(!got.contains("max-out-degree"));
+    assert!(!got.contains("linking/no-dangling-links"));
+    assert!(!got.contains("topology/max-out-degree"));
 }
 
 #[test]
@@ -81,7 +81,7 @@ fn strict_profile_enables_dangling_links() {
     assert!(
         diags
             .iter()
-            .any(|d| d.code == "no-dangling-links" && d.file == "concepts/messy.md"),
+            .any(|d| d.code == "linking/no-dangling-links" && d.file == "concepts/messy.md"),
         "okf-strict should flag the broken link in messy.md"
     );
 }
@@ -90,14 +90,14 @@ fn strict_profile_enables_dangling_links() {
 fn max_out_degree_fires_with_a_low_cap() {
     let bundle = build_bundle(corpus());
     let cfg = ResolvedConfig::from_yaml(
-        "rules:\n  max-out-degree:\n    severity: warn\n    options: { max: 2 }\n",
+        "rules:\n  topology/max-out-degree:\n    severity: warn\n    options: { max: 2 }\n",
     )
     .unwrap();
     let diags = lint(&bundle, &cfg);
     assert!(
         diags
             .iter()
-            .any(|d| d.code == "max-out-degree" && d.file == "concepts/overview.md"),
+            .any(|d| d.code == "topology/max-out-degree" && d.file == "concepts/overview.md"),
         "overview links out to 3 concepts and should exceed max: 2"
     );
 }

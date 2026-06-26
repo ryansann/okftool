@@ -43,16 +43,32 @@ impl Severity {
 
 /// A single finding against one file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Diagnostic {
     /// Bundle-relative path of the offending file (e.g. `concepts/thing.md`).
     pub file: String,
-    /// Stable machine code (e.g. `missing-type`, `no-orphan-concepts`).
+    /// Stable machine code (e.g. `missing-type`, `topology/no-orphan-concepts`).
     pub code: String,
+    /// Human-readable lint rule name, present for lint diagnostics.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rule_name: Option<String>,
+    /// Lint category id, present for lint diagnostics.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
+    /// Human-readable lint category name, present for lint diagnostics.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category_name: Option<String>,
     pub severity: Severity,
     pub message: String,
     /// `true` for spec-validator diagnostics (never disableable), `false` for
     /// lint rules.
     pub spec: bool,
+    /// Why the rule exists, present for lint diagnostics.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rationale: Option<String>,
+    /// Human-actionable explanation, present for lint diagnostics.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub help: Option<String>,
     /// Optional human-actionable suggestion.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fix: Option<String>,
@@ -63,9 +79,14 @@ impl Diagnostic {
         Diagnostic {
             file: file.to_string(),
             code: code.to_string(),
+            rule_name: None,
+            category: None,
+            category_name: None,
             severity: Severity::Error,
             message: message.into(),
             spec: true,
+            rationale: None,
+            help: None,
             fix: Some(fix.to_string()),
         }
     }

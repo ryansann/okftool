@@ -21,7 +21,8 @@ pub use bundle::build_bundle;
 pub use config::{parse_severity, ResolvedConfig};
 pub use links::{extract_links, is_external, resolve_target, RawLink, ResolvedTarget};
 pub use lint::{
-    all_rules, lint, rule_metas, Category, Finding, Graph, LintContext, Rule, RuleMeta,
+    all_rules, canonical_rule_id, lint, rule_descriptors, rule_meta, rule_metas, Category,
+    CategoryDescriptor, Finding, Graph, LintContext, Rule, RuleDescriptor, RuleMeta,
 };
 pub use model::{
     Bundle, Concept, Diagnostic, IndexEntry, IndexFile, IndexSection, Link, LogDay, LogEntry,

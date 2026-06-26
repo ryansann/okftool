@@ -46,7 +46,7 @@ struct RequireDescription;
 impl Rule for RequireDescription {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "require-description",
+            id: "frontmatter/require-description",
             category: Category::Frontmatter,
             summary: "Concept has no `description`.",
             rationale: "The description is the unit of progressive disclosure — it is what index snippets and search results show.",
@@ -74,7 +74,7 @@ struct RequireTimestamp;
 impl Rule for RequireTimestamp {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "require-timestamp",
+            id: "frontmatter/require-timestamp",
             category: Category::Frontmatter,
             summary: "Concept has no `timestamp`.",
             rationale:
@@ -103,7 +103,7 @@ struct TimestampIso8601;
 impl Rule for TimestampIso8601 {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "timestamp-iso8601",
+            id: "frontmatter/timestamp-iso8601",
             category: Category::Frontmatter,
             summary: "`timestamp` is present but not ISO-8601.",
             rationale: "Non-ISO timestamps sort lexically wrong and are ambiguous across locales.",
@@ -141,7 +141,7 @@ struct ConsistentTypeCasing;
 impl Rule for ConsistentTypeCasing {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "consistent-type-casing",
+            id: "type-vocabulary/consistent-type-casing",
             category: Category::TypeVocabulary,
             summary: "A `type` differs from another only by case.",
             rationale:
@@ -182,7 +182,7 @@ struct PreferAbsoluteLinks;
 impl Rule for PreferAbsoluteLinks {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "prefer-absolute-links",
+            id: "linking/prefer-absolute-links",
             category: Category::Linking,
             summary: "Internal link is relative, not bundle-absolute.",
             rationale: "Bundle-absolute `/x.md` links survive moving or renaming the source file; relative links break.",
@@ -218,7 +218,7 @@ struct NoDanglingLinks;
 impl Rule for NoDanglingLinks {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "no-dangling-links",
+            id: "linking/no-dangling-links",
             category: Category::Linking,
             summary: "Link points at a concept that does not exist.",
             rationale: "Broken links are explicitly tolerated by the spec (forward stubs are legitimate), so this is off by default — enable it for bundles that should be self-contained.",
@@ -251,7 +251,7 @@ struct NoOrphanConcepts;
 impl Rule for NoOrphanConcepts {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "no-orphan-concepts",
+            id: "topology/no-orphan-concepts",
             category: Category::Topology,
             summary: "Concept has no incoming or outgoing links.",
             rationale: "A degree-0 concept is unreachable by graph traversal and contributes nothing to the knowledge graph.",
@@ -281,7 +281,7 @@ struct MaxOutDegree;
 impl Rule for MaxOutDegree {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "max-out-degree",
+            id: "topology/max-out-degree",
             category: Category::Topology,
             summary: "Concept exceeds the out-degree cap (hairball guard).",
             rationale: "A concept linking to dozens of others is usually an undeclared hub; cap it or mark it an exempt hub type. Options: `max` (default 20), `exempt-types`.",
@@ -332,7 +332,7 @@ struct StructuralBody;
 impl Rule for StructuralBody {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "structural-body",
+            id: "body/structural-body",
             category: Category::Body,
             summary: "Body is an unstructured prose wall (no heading/list/table).",
             rationale: "Headings, lists, and tables retrieve far better than a wall of prose and give agents anchors to cite.",
@@ -362,7 +362,7 @@ struct BodyNotEmpty;
 impl Rule for BodyNotEmpty {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "body-not-empty",
+            id: "body/body-not-empty",
             category: Category::Body,
             summary: "Concept has frontmatter but an empty body.",
             rationale: "A frontmatter-only stub is fine to commit, but worth flagging — it carries no prose for retrieval.",
@@ -386,7 +386,7 @@ struct NoEmptyFrontmatterValues;
 impl Rule for NoEmptyFrontmatterValues {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "no-empty-frontmatter-values",
+            id: "frontmatter/no-empty-frontmatter-values",
             category: Category::Frontmatter,
             summary: "A frontmatter `title`/`description` is present but empty.",
             rationale: "An empty string reads as 'documented' to tooling while conveying nothing; omit the key or fill it in.",
@@ -418,7 +418,7 @@ struct NoSingletonType;
 impl Rule for NoSingletonType {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "no-singleton-type",
+            id: "type-vocabulary/no-singleton-type",
             category: Category::TypeVocabulary,
             summary: "A `type` is used by exactly one concept.",
             rationale: "A type with a single member is often a typo or over-specialization that fragments the vocabulary.",
@@ -450,7 +450,7 @@ struct TypesFromAllowlist;
 impl Rule for TypesFromAllowlist {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "types-from-allowlist",
+            id: "type-vocabulary/types-from-allowlist",
             category: Category::TypeVocabulary,
             summary: "A `type` is not in the declared vocabulary.",
             rationale: "Off until you declare a vocabulary; once you do (`options.allow`), any type outside it is almost always a mistake. Options: `allow` (list).",
@@ -490,7 +490,7 @@ struct NoRelativeLinks;
 impl Rule for NoRelativeLinks {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "no-relative-links",
+            id: "linking/no-relative-links",
             category: Category::Linking,
             summary: "Any relative internal link (stricter than prefer-absolute-links).",
             rationale: "A blanket ban on relative links for bundles that want every cross-link to survive refactors.",
@@ -526,7 +526,7 @@ struct NoSelfLink;
 impl Rule for NoSelfLink {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "no-self-link",
+            id: "linking/no-self-link",
             category: Category::Linking,
             summary: "A concept links to itself.",
             rationale: "A self-link adds a noise edge to the graph and conveys nothing.",
@@ -554,7 +554,7 @@ struct NoUnindexedConcepts;
 impl Rule for NoUnindexedConcepts {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "no-unindexed-concepts",
+            id: "topology/no-unindexed-concepts",
             category: Category::Topology,
             summary: "Concept is not referenced by any index.md.",
             rationale: "A concept absent from every index is unreachable via progressive disclosure — a reader browsing the bundle will never find it.",
@@ -597,7 +597,7 @@ struct IndexEntryHasDescription;
 impl Rule for IndexEntryHasDescription {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "index-entry-has-description",
+            id: "index-log/index-entry-has-description",
             category: Category::IndexLog,
             summary: "An index entry has no `— description` tail.",
             rationale: "Descriptions in an index are the snippets a reader scans; entries without one make progressive disclosure poorer.",
@@ -627,7 +627,7 @@ struct LogNewestFirst;
 impl Rule for LogNewestFirst {
     fn meta(&self) -> RuleMeta {
         RuleMeta {
-            id: "log-newest-first",
+            id: "index-log/log-newest-first",
             category: Category::IndexLog,
             summary: "log.md entries are not in newest-first date order.",
             rationale: "A change log should read top-down newest-first; out-of-order dates suggest an append in the wrong place.",

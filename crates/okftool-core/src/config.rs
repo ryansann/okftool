@@ -8,6 +8,7 @@ use globset::{Glob, GlobMatcher};
 use serde::Deserialize;
 use serde_json::Value;
 
+use crate::lint::canonical_rule_id;
 use crate::model::Severity;
 
 /// Parse a severity word; `off`/`info`/`warn`/`error` (case-insensitive).
@@ -141,6 +142,7 @@ impl ResolvedConfig {
                 if let Ok(preset) = serde_yaml::from_str::<RawConfig>(yaml) {
                     for (id, setting) in preset.rules {
                         let (severity, options) = setting.split();
+                        let id = normalize_rule_id(&id);
                         rules.insert(id, RuleConfig { severity, options });
                     }
                 }
@@ -150,6 +152,7 @@ impl ResolvedConfig {
         // Root config rules override the preset layer.
         for (id, setting) in raw.rules {
             let (severity, options) = setting.split();
+            let id = normalize_rule_id(&id);
             rules.insert(id, RuleConfig { severity, options });
         }
 
@@ -161,7 +164,7 @@ impl ResolvedConfig {
                 let rules = o
                     .rules
                     .iter()
-                    .map(|(id, s)| (id.clone(), s.split().0))
+                    .map(|(id, s)| (normalize_rule_id(id), s.split().0))
                     .collect();
                 Some(OverrideConfig { matcher, rules })
             })
@@ -228,4 +231,11 @@ impl ResolvedConfig {
         }
         severity
     }
+}
+
+fn normalize_rule_id(id: &str) -> String {
+    if id == "*" {
+        return id.to_string();
+    }
+    canonical_rule_id(id).unwrap_or(id).to_string()
 }

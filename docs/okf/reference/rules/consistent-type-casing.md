@@ -1,12 +1,12 @@
 ---
 type: LintRule
-title: consistent-type-casing
+title: type-vocabulary/consistent-type-casing
 description: Flags a type that differs from another only by case.
 timestamp: 2026-06-23
 tags: [lint, type-vocabulary]
 ---
 
-# consistent-type-casing
+# type-vocabulary/consistent-type-casing
 
 Table versus table fragment the type vocabulary and split filters and the graph.
 

@@ -6,10 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [0.1.6] - 2026-06-23
+## [0.2.0] - 2026-06-25
 
 ### Added
 
+- Added canonical namespaced lint rule IDs, alias-aware config resolution, and
+  richer diagnostic/rule metadata for okfview.
 - Published a dual-target npm package with browser/Vite and Node/Electron-main
   entrypoints.
 
@@ -59,8 +61,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Self-documenting OKF bundle at `docs/okf/`, linted under the strict profile in
   CI (dogfood).
 
-[Unreleased]: https://github.com/ryansann/okftool/compare/v0.1.6...HEAD
-[0.1.6]: https://github.com/ryansann/okftool/compare/v0.1.5...v0.1.6
+[Unreleased]: https://github.com/ryansann/okftool/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ryansann/okftool/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/ryansann/okftool/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/ryansann/okftool/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/ryansann/okftool/compare/v0.1.2...v0.1.3

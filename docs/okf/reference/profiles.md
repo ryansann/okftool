@@ -32,21 +32,21 @@ off-by-default hygiene checks turn on.
 # okf-strict — opinionated, CI-blocking profile. Promotes advisory rules to
 # errors and enables the off-by-default hygiene checks.
 rules:
-  require-description: error
-  require-timestamp: warn
-  no-empty-frontmatter-values: error
-  consistent-type-casing: error
-  no-singleton-type: warn
-  prefer-absolute-links: error
-  no-relative-links: error
-  no-dangling-links: warn
-  no-self-link: error
-  no-orphan-concepts: error
-  no-unindexed-concepts: error
-  structural-body: error
-  body-not-empty: error
-  index-entry-has-description: warn
-  log-newest-first: warn
+  frontmatter/require-description: error
+  frontmatter/require-timestamp: warn
+  frontmatter/no-empty-frontmatter-values: error
+  type-vocabulary/consistent-type-casing: error
+  type-vocabulary/no-singleton-type: warn
+  linking/prefer-absolute-links: error
+  linking/no-relative-links: error
+  linking/no-dangling-links: warn
+  linking/no-self-link: error
+  topology/no-orphan-concepts: error
+  topology/no-unindexed-concepts: error
+  body/structural-body: error
+  body/body-not-empty: error
+  index-log/index-entry-has-description: warn
+  index-log/log-newest-first: warn
 ```
 
 ## okf-minimal
@@ -60,21 +60,21 @@ cheap format check. Spec conformance is always enforced by
 # the cheap, high-signal format check. (Spec conformance is always enforced by
 # `validate`, independent of any profile.)
 rules:
-  require-description: "off"
-  require-timestamp: "off"
-  no-empty-frontmatter-values: "off"
-  consistent-type-casing: "off"
-  no-singleton-type: "off"
-  prefer-absolute-links: "off"
-  no-orphan-concepts: "off"
-  no-unindexed-concepts: "off"
-  max-out-degree: "off"
-  structural-body: "off"
-  body-not-empty: "off"
-  no-self-link: "off"
-  index-entry-has-description: "off"
-  log-newest-first: "off"
-  timestamp-iso8601: warn
+  frontmatter/require-description: "off"
+  frontmatter/require-timestamp: "off"
+  frontmatter/no-empty-frontmatter-values: "off"
+  type-vocabulary/consistent-type-casing: "off"
+  type-vocabulary/no-singleton-type: "off"
+  linking/prefer-absolute-links: "off"
+  topology/no-orphan-concepts: "off"
+  topology/no-unindexed-concepts: "off"
+  topology/max-out-degree: "off"
+  body/structural-body: "off"
+  body/body-not-empty: "off"
+  linking/no-self-link: "off"
+  index-log/index-entry-has-description: "off"
+  index-log/log-newest-first: "off"
+  frontmatter/timestamp-iso8601: warn
 ```
 
 See [configuration](/reference/configuration.md) for the full cascade and the

@@ -39,6 +39,8 @@ pub fn registry() -> Vec<Box<dyn Rule>> {
         Box::new(PreferNeighborhoodIndexLink),
         Box::new(NoCompleteNeighborhoodClique),
         Box::new(MinLocalCohesion),
+        Box::new(NoAlienatedConcepts),
+        Box::new(NoNoisyEdges),
         Box::new(DeclareHubs),
         // body
         Box::new(StructuralBody),
@@ -621,6 +623,117 @@ impl Rule for MinLocalCohesion {
                     &c.path,
                     format!(
                         "Concept has outgoing links but none stay inside its neighborhood `{neighborhood}`."
+                    ),
+                ))
+            })
+            .collect()
+    }
+}
+
+struct NoAlienatedConcepts;
+impl Rule for NoAlienatedConcepts {
+    fn meta(&self) -> RuleMeta {
+        RuleMeta {
+            id: "graph-structure/no-alienated-concepts",
+            category: Category::GraphStructure,
+            summary: "Concept is weakly attached to its neighborhood.",
+            rationale: "A concept can avoid being an orphan while still sitting at the edge of the bundle. Weakly attached concepts need more local context, a better neighborhood, or an intentional hub/overview path.",
+            default_severity: Severity::Warn,
+            fixable: false,
+        }
+    }
+    fn check(&self, ctx: &LintContext) -> Vec<Finding> {
+        let min_local_degree = option_usize(ctx.options, "minLocalDegree", 1);
+        let max_total_degree = option_usize(ctx.options, "maxTotalDegree", 2);
+        let min_neighborhood_size = option_usize(ctx.options, "minNeighborhoodSize", 2);
+
+        ctx.bundle
+            .concepts
+            .iter()
+            .filter(|c| !is_declared_hub(c, ctx.options))
+            .filter_map(|c| {
+                let neighborhood = ctx.graph.neighborhoods.get(&c.id)?;
+                let neighborhood_size = ctx
+                    .graph
+                    .neighborhood_members
+                    .get(neighborhood)
+                    .map(Vec::len)
+                    .unwrap_or(0);
+                if neighborhood_size < min_neighborhood_size {
+                    return None;
+                }
+
+                let total_in = ctx.graph.in_degree.get(&c.id).copied().unwrap_or(0);
+                let total_out = ctx.graph.out_degree.get(&c.id).copied().unwrap_or(0);
+                let total_degree = total_in + total_out;
+                if total_degree == 0 || total_degree > max_total_degree {
+                    return None;
+                }
+
+                let local_in = ctx.graph.local_in_degree.get(&c.id).copied().unwrap_or(0);
+                let local_out = ctx.graph.local_out_degree.get(&c.id).copied().unwrap_or(0);
+                let local_degree = local_in + local_out;
+                (local_degree < min_local_degree).then(|| {
+                    Finding::new(
+                        &c.path,
+                        format!(
+                            "Concept is weakly attached: {total_degree} total graph connection(s), {local_degree} local connection(s) in neighborhood `{neighborhood}`."
+                        ),
+                    )
+                })
+            })
+            .collect()
+    }
+}
+
+struct NoNoisyEdges;
+impl Rule for NoNoisyEdges {
+    fn meta(&self) -> RuleMeta {
+        RuleMeta {
+            id: "graph-structure/no-noisy-edges",
+            category: Category::GraphStructure,
+            summary: "Ordinary concept has too many graph connections.",
+            rationale: "Too many incoming or outgoing edges on a non-hub concept makes the graph harder to scan and weakens each edge's signal. Keep ordinary concepts selective, or declare intentional routers as hubs.",
+            default_severity: Severity::Warn,
+            fixable: false,
+        }
+    }
+    fn check(&self, ctx: &LintContext) -> Vec<Finding> {
+        let max_total_degree = option_usize(ctx.options, "maxTotalDegree", 10);
+        let max_out_degree = option_usize(ctx.options, "maxOutDegree", 6);
+        let max_in_degree = option_usize(ctx.options, "maxInDegree", 8);
+
+        ctx.bundle
+            .concepts
+            .iter()
+            .filter(|c| !is_declared_hub(c, ctx.options))
+            .filter_map(|c| {
+                let in_degree = ctx.graph.in_degree.get(&c.id).copied().unwrap_or(0);
+                let out_degree = ctx.graph.out_degree.get(&c.id).copied().unwrap_or(0);
+                let total_degree = in_degree + out_degree;
+                if total_degree <= max_total_degree
+                    && out_degree <= max_out_degree
+                    && in_degree <= max_in_degree
+                {
+                    return None;
+                }
+
+                let mut reasons = Vec::new();
+                if total_degree > max_total_degree {
+                    reasons.push(format!("total degree {total_degree} > {max_total_degree}"));
+                }
+                if out_degree > max_out_degree {
+                    reasons.push(format!("out-degree {out_degree} > {max_out_degree}"));
+                }
+                if in_degree > max_in_degree {
+                    reasons.push(format!("in-degree {in_degree} > {max_in_degree}"));
+                }
+
+                Some(Finding::new(
+                    &c.path,
+                    format!(
+                        "Concept has noisy graph edges ({}) — reduce incidental links or declare an intentional hub.",
+                        reasons.join(", ")
                     ),
                 ))
             })

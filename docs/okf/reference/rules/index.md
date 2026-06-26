@@ -35,6 +35,8 @@ For how these rules are grouped and named, see the local
 - [graph-structure/prefer-neighborhood-index-link](/reference/rules/prefer-neighborhood-index-link.md) — many deep links to one external neighborhood
 - [graph-structure/no-complete-neighborhood-clique](/reference/rules/no-complete-neighborhood-clique.md) — local neighborhood is too densely linked
 - [graph-structure/min-local-cohesion](/reference/rules/min-local-cohesion.md) — outgoing links but no local cohesive edge
+- [graph-structure/no-alienated-concepts](/reference/rules/no-alienated-concepts.md) — weakly attached to the local neighborhood
+- [graph-structure/no-noisy-edges](/reference/rules/no-noisy-edges.md) — too many graph connections on a non-hub concept
 - [graph-structure/declare-hubs](/reference/rules/declare-hubs.md) — high-fanout concept is not declared as a hub
 
 ## Body

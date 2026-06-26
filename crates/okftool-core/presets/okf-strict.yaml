@@ -19,6 +19,8 @@ rules:
   graph-structure/prefer-neighborhood-index-link: error
   graph-structure/no-complete-neighborhood-clique: error
   graph-structure/min-local-cohesion: error
+  graph-structure/no-alienated-concepts: error
+  graph-structure/no-noisy-edges: error
   graph-structure/declare-hubs: error
   body/structural-body: error
   body/body-not-empty: error

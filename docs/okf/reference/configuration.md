@@ -3,6 +3,8 @@ type: Concept
 title: Configuration
 description: The .okftool.yaml format — presets, rules, overrides, CI gate.
 timestamp: 2026-06-23
+tags: [hub, reference]
+hub: true
 ---
 
 # Configuration

@@ -20,7 +20,7 @@ jobs:
     name: verify tag matches crate version
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check version
         run: |
           crate="$(cargo metadata --no-deps --format-version 1 \
@@ -51,7 +51,7 @@ jobs:
             os: windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -74,25 +74,10 @@ jobs:
     if: ${{ vars.PUBLISH_CRATES == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
-      - name: Publish okftool-core
-        run: cargo publish -p okftool-core
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      - name: Wait for okftool-core index propagation
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          for i in {1..20}; do
-            if cargo search okftool-core --limit 1 | grep -q "^okftool-core = \"$version\""; then
-              exit 0
-            fi
-            sleep 15
-          done
-          echo "::error::okftool-core $version did not appear in the crates.io index" >&2
-          exit 1
-      - name: Publish okftool-cli
-        run: cargo publish -p okftool-cli
+      - name: Publish crates
+        run: scripts/publish-crates.sh
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -102,7 +87,7 @@ jobs:
     needs: [guard, binaries]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Package docs/okf and upload to the release
@@ -120,14 +105,14 @@ jobs:
     if: ${{ vars.PUBLISH_NPM == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
       - uses: jetli/wasm-pack-action@v0.4.0
       - name: Build npm package
         run: scripts/build-npm-package.sh
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"

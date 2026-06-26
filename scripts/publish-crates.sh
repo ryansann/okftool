@@ -9,7 +9,13 @@ fi
 
 crate_published() {
   local crate="$1"
-  cargo info "${crate}@${version}" --quiet >/dev/null 2>&1
+  curl --fail --silent --show-error \
+    --retry 3 \
+    --retry-delay 2 \
+    --header "Accept: application/json" \
+    --header "User-Agent: okftool-release-script" \
+    "https://crates.io/api/v1/crates/${crate}/${version}" \
+    >/dev/null 2>/dev/null
 }
 
 publish_or_skip() {

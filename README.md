@@ -59,6 +59,17 @@ profile. Exit is non-zero on non-conformance or any diagnostic at/above
 `ci.fail-on` (default `error`). `--format sarif` emits SARIF 2.1.0 for inline
 GitHub PR annotations.
 
+## Package bundles
+
+`okftool build` creates a distributable `.tar.gz` from a bundle directory. By
+default it validates spec conformance first, then writes `<bundle>.tar.gz` with a
+single top-level directory inside the archive.
+
+```sh
+okftool build docs/okf
+okftool build docs/okf -o okftool-0.2.5.tar.gz --prefix okftool-0.2.5
+```
+
 ## Rules & configuration
 
 okftool ships **28 lint rules** across seven categories (frontmatter,

@@ -1,6 +1,8 @@
 # okftool
 
 [![CI](https://github.com/ryansann/okftool/actions/workflows/ci.yml/badge.svg)](https://github.com/ryansann/okftool/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/okftool-cli.svg)](https://crates.io/crates/okftool-cli)
+[![npm](https://img.shields.io/npm/v/@ryansann/okftool.svg)](https://www.npmjs.com/package/@ryansann/okftool)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 
 A fast, embeddable **validator and linter** for [OKF](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
